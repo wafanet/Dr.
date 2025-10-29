@@ -1,0 +1,3720 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الشجرة التنظيمية - برنامج الماجستير المهني</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+            padding: 40px 20px;
+            min-height: 100%;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(21, 115, 71, 0.1);
+        }
+
+        .header h1 {
+            color: #157347;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .level {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+            width: 100%;
+            position: relative;
+        }
+
+        .committee-box {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 6px 25px rgba(21, 115, 71, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid #157347;
+            position: relative;
+            min-width: 280px;
+            max-width: 320px;
+        }
+
+        .committee-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(21, 115, 71, 0.25);
+            border-color: #0d5a37;
+        }
+
+        .committee-box.level-1 {
+            background: linear-gradient(135deg, #157347 0%, #0d5a37 100%);
+            color: white;
+            border: none;
+            min-width: 350px;
+        }
+
+        .committee-box.level-2 {
+            background: linear-gradient(135deg, #1e8e5f 0%, #157347 100%);
+            color: white;
+            border: none;
+            min-width: 320px;
+        }
+
+        .committee-box.level-3 {
+            border-color: #1e8e5f;
+        }
+
+        .committee-box.level-4 {
+            border-color: #52b788;
+            background: #f8fffe;
+        }
+
+        .committee-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .committee-box.level-1 .committee-title,
+        .committee-box.level-2 .committee-title {
+            color: white;
+        }
+
+        .committee-box.level-3 .committee-title,
+        .committee-box.level-4 .committee-title {
+            color: #157347;
+        }
+
+        .member {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .committee-box.level-1 .member,
+        .committee-box.level-2 .member {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .committee-box.level-3 .member,
+        .committee-box.level-4 .member {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+
+        .member:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        .committee-box.level-3 .member:hover,
+        .committee-box.level-4 .member:hover {
+            background: #c8e6c9;
+            border-color: #157347;
+        }
+
+        .member:last-child {
+            margin-bottom: 0;
+        }
+
+        .member-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .member-role {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .committee-box.level-3 .member-name,
+        .committee-box.level-4 .member-name {
+            color: #157347;
+        }
+
+        .committee-box.level-3 .member-role,
+        .committee-box.level-4 .member-role {
+            color: #0d5a37;
+        }
+
+        .connector {
+            width: 3px;
+            height: 40px;
+            background: linear-gradient(to bottom, #157347, #52b788);
+            margin: 0 auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            border-bottom: 3px solid #157347;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #157347;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 1.2rem;
+            color: #1e8e5f;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            line-height: 1.8;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-label {
+            font-weight: 700;
+            color: #157347;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .detail-content {
+            color: #333;
+            font-size: 1rem;
+            padding: 12px;
+            background: #f8fffe;
+            border-radius: 10px;
+            border-right: 4px solid #52b788;
+        }
+
+        .detail-content ul {
+            list-style: none;
+            padding-right: 0;
+        }
+
+        .detail-content li {
+            padding: 6px 0;
+            position: relative;
+            padding-right: 25px;
+        }
+
+        .detail-content li:before {
+            content: "✓";
+            position: absolute;
+            right: 0;
+            color: #157347;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #157347;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            background: #0d5a37;
+            transform: rotate(90deg);
+        }
+
+        .expandable-section {
+            margin-bottom: 15px;
+        }
+
+        .expand-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 12px;
+            background: #f8fffe;
+            border: 2px solid #c8e6c9;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .expand-header:hover {
+            background: #e8f5e9;
+            border-color: #157347;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #157347;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            width: 20px;
+            text-align: center;
+        }
+
+        .expand-header.expanded .expand-icon {
+            transform: rotate(45deg);
+        }
+
+        .expand-content {
+            display: none;
+            padding: 0 15px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .expand-content.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+
+        .scroll-buttons {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+
+        .scroll-btn {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #157347 0%, #0d5a37 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(21, 115, 71, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .scroll-btn.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .scroll-btn:hover {
+            background: linear-gradient(135deg, #0d5a37 0%, #157347 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(21, 115, 71, 0.4);
+        }
+
+        .scroll-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .scroll-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .modal-scroll-buttons {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1001;
+        }
+
+        .modal-scroll-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #157347 0%, #0d5a37 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 3px 12px rgba(21, 115, 71, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+        }
+
+        .modal-scroll-btn.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .modal-scroll-btn:hover {
+            background: linear-gradient(135deg, #0d5a37 0%, #157347 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(21, 115, 71, 0.4);
+        }
+
+        .modal-scroll-btn:active {
+            transform: translateY(0);
+        }
+
+        .modal-scroll-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .committee-box {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .committee-box.level-1,
+            .committee-box.level-2 {
+                min-width: 100%;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+            }
+
+            .modal-title {
+                font-size: 1.4rem;
+            }
+
+            .org-chart {
+                gap: 40px;
+            }
+
+            .scroll-buttons {
+                right: 20px;
+                bottom: 20px;
+            }
+
+            .scroll-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .scroll-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .modal-scroll-buttons {
+                left: 15px;
+                bottom: 15px;
+            }
+
+            .modal-scroll-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+
+            .modal-scroll-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>الهيكل التنظيمي للجان البرنامج</h1>
+            <p>برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</p>
+        </div>
+
+        <div class="org-chart">
+            <!-- المستوى الأول -->
+            <div class="level">
+                <div class="committee-box level-1" onclick="showModal('committee1')">
+                    <div class="committee-title">لجنة البرنامج الأكاديمي</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-1')">
+                        <div class="member-name">د. نورة السلامة</div>
+                        <div class="member-role">رئيسة قسم التعليم والتعلم</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-2')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-3')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-4')">
+                        <div class="member-name">د. عبير العجلان</div>
+                        <div class="member-role">أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-5')">
+                        <div class="member-name">د. تهاني الرؤساء</div>
+                        <div class="member-role">أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-6')">
+                        <div class="member-name">أ.د. أفنان العييد</div>
+                        <div class="member-role">أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-7')">
+                        <div class="member-name">د. مرفت بابعير</div>
+                        <div class="member-role">أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-8')">
+                        <div class="member-name">د. صفية الدايل</div>
+                        <div class="member-role">أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member1-9')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector"></div>
+
+            <!-- المستوى الثاني -->
+            <div class="level">
+                <div class="committee-box level-2" onclick="showModal('committee2')">
+                    <div class="committee-title">اللجنة الرئيسية لمعايير ضمان جودة البرنامج</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-1')">
+                        <div class="member-name">د. نورة السلامة</div>
+                        <div class="member-role">رئيسة اللجنة - رئيسة القسم</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-2')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">نائب الرئيس - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-3')">
+                        <div class="member-name">أ.د. أفنان العييد</div>
+                        <div class="member-role">عضو - رئيسة لجنة البحث العلمي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-4')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">عضو - رئيسة لجنة التعليم والتعلم</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-5')">
+                        <div class="member-name">د. أمل الجار الله</div>
+                        <div class="member-role">عضو - رئيسة لجنة الطلاب</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-6')">
+                        <div class="member-name">د. وفاء العلاوي</div>
+                        <div class="member-role">عضو - رئيسة لجنة مصادر التعلم والتجهيزات</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-7')">
+                        <div class="member-name">د. صفية الدايل</div>
+                        <div class="member-role">عضو - رئيسة لجنة هيئة التدريس</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member2-8')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">منسقة إدارية للجودة - سكرتيرة</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector"></div>
+
+            <!-- المستوى الثالث -->
+            <div class="level">
+                <div class="committee-box level-3" onclick="showModal('committee3-1')">
+                    <div class="committee-title">المعيار 1: إدارة البرنامج</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-1')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">رئيسة اللجنة - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-2')">
+                        <div class="member-name">د. عبير العجلان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-3')">
+                        <div class="member-name">أ.د. أفنان العييد</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-4')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-5')">
+                        <div class="member-name">د. هند الثنيان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-6')">
+                        <div class="member-name">د. وفاء العلاوي</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-1-7')">
+                        <div class="member-name">د. صفية الدايل</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-3" onclick="showModal('committee3-2')">
+                    <div class="committee-title">المعيار 2: التعليم والتعلم</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-1')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-2')">
+                        <div class="member-name">د. مها الفريح</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-3')">
+                        <div class="member-name">د. عبير العجلان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-4')">
+                        <div class="member-name">د. أمل القحطاني</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-5')">
+                        <div class="member-name">د. هيفاء العودان</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-6')">
+                        <div class="member-name">أ. نوره أبوهلال</div>
+                        <div class="member-role">عضو - محاضر</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-2-7')">
+                        <div class="member-name">أ. مي الجاسر</div>
+                        <div class="member-role">عضو - محاضر</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-3" onclick="showModal('committee3-3')">
+                    <div class="committee-title">المعيار 3: الطلاب</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-3-1')">
+                        <div class="member-name">د. أمل الجار الله</div>
+                        <div class="member-role">رئيسة اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-3-2')">
+                        <div class="member-name">د. ريم المبارك</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-3-3')">
+                        <div class="member-name">د. منى الزهراني</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level">
+                <div class="committee-box level-3" onclick="showModal('committee3-4')">
+                    <div class="committee-title">المعيار 4: هيئة التدريس</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-4-1')">
+                        <div class="member-name">د. صفية الدايل</div>
+                        <div class="member-role">رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-4-2')">
+                        <div class="member-name">د. مرفت بابعير</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-4-3')">
+                        <div class="member-name">أ. مي الجاسر</div>
+                        <div class="member-role">عضو - محاضر</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-3" onclick="showModal('committee3-5')">
+                    <div class="committee-title">المعيار 5: المصادر والتجهيزات</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-5-1')">
+                        <div class="member-name">د. وفاء العلاوي</div>
+                        <div class="member-role">رئيسة اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-5-2')">
+                        <div class="member-name">د. غزلاء الحويل</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-5-3')">
+                        <div class="member-name">أ. نورة أبوهلال</div>
+                        <div class="member-role">عضو - محاضر</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-3" onclick="showModal('committee3-6')">
+                    <div class="committee-title">المعيار 6: البحوث والمشاريع</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-6-1')">
+                        <div class="member-name">أ.د. أفنان العييد</div>
+                        <div class="member-role">رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-6-2')">
+                        <div class="member-name">د. غادة البكري</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member3-6-3')">
+                        <div class="member-name">د. مشاعل السيف</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector"></div>
+
+            <!-- المستوى الرابع -->
+            <div class="level">
+                <div class="committee-box level-4" onclick="showModal('committee4-1')">
+                    <div class="committee-title">لجنة قياس وتقويم نواتج التعلم</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-1')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">رئيسة اللجنة - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-2')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">نائبة رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-3')">
+                        <div class="member-name">أ.د. ريم المعيذر</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-4')">
+                        <div class="member-name">د. عبير العجلان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-5')">
+                        <div class="member-name">د. مرفت بابعير</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-6')">
+                        <div class="member-name">د. مها الفريح</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-1-7')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">سكرتيرة اللجنة</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-4" onclick="showModal('committee4-2')">
+                    <div class="committee-title">لجنة الاستبانات ومؤشرات الأداء</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-1')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">رئيسة اللجنة - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-2')">
+                        <div class="member-name">د. تهاني الرؤساء</div>
+                        <div class="member-role">نائبة رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-3')">
+                        <div class="member-name">د. هيفاء العودان</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-4')">
+                        <div class="member-name">د. ريم المبارك</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-5')">
+                        <div class="member-name">أ.د. سهام الجريوي</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-6')">
+                        <div class="member-name">أ.د. وضحى العتيبي</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-7')">
+                        <div class="member-name">د. جواهر الرشود</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-2-8')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">سكرتيرة اللجنة</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-4" onclick="showModal('committee4-3')">
+                    <div class="committee-title">لجنة الاختبارات والتقويم</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-1')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">رئيسة اللجنة - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-2')">
+                        <div class="member-name">د. أمل القحطاني</div>
+                        <div class="member-role">نائبة رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-3')">
+                        <div class="member-name">د. نوال الربيعان</div>
+                        <div class="member-role">عضو - أستاذ مشارك</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-4')">
+                        <div class="member-name">د. هند الثنيان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-5')">
+                        <div class="member-name">د. فاطمة الشهري</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-3-6')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">سكرتيرة اللجنة</div>
+                    </div>
+                </div>
+
+                <div class="committee-box level-4" onclick="showModal('committee4-4')">
+                    <div class="committee-title">اللجنة الاستشارية</div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-1')">
+                        <div class="member-name">د. نورة السلامة</div>
+                        <div class="member-role">رئيسة اللجنة - رئيسة قسم التعليم والتعلم</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-2')">
+                        <div class="member-name">د. علياء الجارد</div>
+                        <div class="member-role">أمينة الجلسة - مديرة البرنامج</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-3')">
+                        <div class="member-name">أ.د. أفنان العييد</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-4')">
+                        <div class="member-name">د. عبير العجلان</div>
+                        <div class="member-role">عضو - أستاذ مساعد</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-5')">
+                        <div class="member-name">أ.د. أمل الموزان</div>
+                        <div class="member-role">عضو - أستاذ</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-6')">
+                        <div class="member-name">د. نوف الحكمي</div>
+                        <div class="member-role">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-7')">
+                        <div class="member-name">أ. عماد الدغيثر</div>
+                        <div class="member-role">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-8')">
+                        <div class="member-name">أ. عبدالعزيز الصيعري</div>
+                        <div class="member-role">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-9')">
+                        <div class="member-name">د. عائشة حجازي</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-10')">
+                        <div class="member-name">أ. منار المحيميد</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-11')">
+                        <div class="member-name">د. فهد العنزي</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-12')">
+                        <div class="member-name">د. عبدالعزيز التمامي</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-13')">
+                        <div class="member-name">د. عبدالله آل محيا</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-14')">
+                        <div class="member-name">أ.د. دانية العباسي</div>
+                        <div class="member-role">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-15')">
+                        <div class="member-name">أ. ريم بخاري</div>
+                        <div class="member-role">ممثل من المجلس الطلابي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-16')">
+                        <div class="member-name">أ. ياسر القحطاني</div>
+                        <div class="member-role">ممثل من المجلس الطلابي</div>
+                    </div>
+                    <div class="member" onclick="event.stopPropagation(); showModal('member4-4-17')">
+                        <div class="member-name">أ. فاطمة السنيدي</div>
+                        <div class="member-role">سكرتيرة اللجنة</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Buttons -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn" id="scrollUp" onclick="scrollToTop()" title="العودة للأعلى">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+        </button>
+        <button class="scroll-btn" id="scrollDown" onclick="scrollToBottom()" title="الانتقال للأسفل">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal" onclick="closeModal(event)">
+        <div class="modal-content" id="modalContent" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-subtitle" id="modalSubtitle"></div>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            
+            <!-- Modal Scroll Buttons -->
+            <div class="modal-scroll-buttons" id="modalScrollButtons">
+                <button class="modal-scroll-btn" id="modalScrollUp" onclick="scrollModalToTop()" title="العودة لأعلى النافذة">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                    </svg>
+                </button>
+                <button class="modal-scroll-btn" id="modalScrollDown" onclick="scrollModalToBottom()" title="الانتقال لأسفل النافذة">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            committee1: {
+                title: 'لجنة البرنامج الأكاديمي',
+                subtitle: 'المستوى الأول - اللجنة العليا',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">مهام اللجنة:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>نشر ثقافة الجودة والاعتماد الأكاديمي وبناء قدرات منسوبات البرنامج للعمل لصالح ضمان الجودة والاعتماد الأكاديمي</li>
+                                <li>التخطيط لضمان الجودة والاعتماد الأكاديمي للبرنامج</li>
+                                <li>تطبيق نظام إدارة الجودة بجامعة الأميرة نورة بنت عبد الرحمن (QMS)</li>
+                                <li>تنفيذ التوصيات التي تصدر عنها اجتماعات اللجنة الاستشارية</li>
+                                <li>متابعة تنفيذ إجراءات ضمان جودة البرنامج المشتملة على سبيل الذكر - لا الحصر-: (توصيف البرنامج والمقررات، إعداد التقارير السنوية للبرنامج والمقررات، وإعداد الدراسة الذاتية وتطبيق الاستبانات، وحساب مؤشرات الأداء، والخطة التشغيلية للبرنامج Action Plan)</li>
+                                <li>التنسيق للمراجعة النظيرة والتجريبية للبرنامج (Mock Visit)</li>
+                                <li>التقدم برفع وثائق الاعتماد، وتهيئة الأعضاء لزيارات المراجعة الخارجية للبرنامج، والتحقق من رد البرنامج على توصيات المركز الوطني للتقويم والاعتماد الأكاديمي، وذلك بالتنسيق مع عمادة ضمان الجودة والاعتماد الأكاديمي</li>
+                                <li>الإشراف على عمليات التطوير والتحسين المستمر للبرنامج</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_1: {
+                title: 'د. نورة السلامة',
+                subtitle: 'رئيسة قسم التعليم والتعلم - أستاذ مساعد ورئيسة اللجنة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة قسم التعليم والتعلم - أستاذ مساعد ورئيسة اللجنة</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة اجتماعات اللجنة وإدارة أعمالها</li>
+                                <li>التنسيق مع الإدارة العليا للكلية</li>
+                                <li>اعتماد التقارير والقرارات الرئيسية</li>
+                                <li>متابعة تنفيذ الخطط الاستراتيجية</li>
+                                <li>الإشراف على تطوير برامج التعليم والتعلم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_2: {
+                title: 'د. علياء الجارد',
+                subtitle: 'مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف المباشر على البرنامج الأكاديمي</li>
+                                <li>تنسيق الأنشطة التعليمية والإدارية</li>
+                                <li>متابعة تطبيق معايير الجودة</li>
+                                <li>التواصل مع الطلاب وأعضاء هيئة التدريس</li>
+                                <li>إعداد التقارير الدورية للبرنامج</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_3: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في اتخاذ القرارات الاستراتيجية</li>
+                                <li>تقديم الخبرة الأكاديمية والبحثية</li>
+                                <li>المساهمة في تطوير البرنامج</li>
+                                <li>الإشراف على الجوانب الأكاديمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_4: {
+                title: 'د. عبير العجلان',
+                subtitle: 'أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ مساعد - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في تطوير المناهج والمقررات</li>
+                                <li>تقديم الدعم الأكاديمي للطلاب</li>
+                                <li>المساهمة في أنشطة البحث العلمي</li>
+                                <li>المشاركة في اجتماعات اللجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_5: {
+                title: 'د. تهاني الرؤساء',
+                subtitle: 'أستاذ مشارك',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ مشارك - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في التخطيط الاستراتيجي للبرنامج</li>
+                                <li>تقديم الخبرة في التعليم والتعلم</li>
+                                <li>المشاركة في تقييم البرنامج</li>
+                                <li>دعم أنشطة التطوير المهني</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_6: {
+                title: 'أ.د. أفنان العييد',
+                subtitle: 'أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة المبادرات الأكاديمية المتقدمة</li>
+                                <li>تقديم الاستشارة في التطوير الأكاديمي</li>
+                                <li>الإشراف على البحوث والمشاريع</li>
+                                <li>المساهمة في رفع جودة البرنامج</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_7: {
+                title: 'د. مرفت بابعير',
+                subtitle: 'أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ مساعد - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير المحتوى التعليمي</li>
+                                <li>دعم الطلاب أكاديمياً وبحثياً</li>
+                                <li>المشاركة في أنشطة ضمان الجودة</li>
+                                <li>تقديم التقارير والتوصيات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_8: {
+                title: 'د. صفية الدايل',
+                subtitle: 'أستاذ مشارك',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ مشارك - عضو لجنة البرنامج الأكاديمي</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في التطوير الأكاديمي للبرنامج</li>
+                                <li>تقديم الخبرة في مجال التخصص</li>
+                                <li>المشاركة في عمليات التقييم والمراجعة</li>
+                                <li>دعم أنشطة البحث والتطوير</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member1_9: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق بين أعضاء اللجنة</li>
+                                <li>إدارة المراسلات والوثائق الرسمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية - إدارة البرنامج</div>
+                    </div>
+                `
+            },
+            member1_2: {
+                title: 'د. فاطمة سعيد الزهراني',
+                subtitle: 'نائب رئيس لجنة البرنامج الأكاديمي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">نائب الرئيس - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>مساعدة الرئيس في إدارة أعمال اللجنة</li>
+                                <li>الإشراف على اللجان الفرعية</li>
+                                <li>متابعة تنفيذ القرارات</li>
+                                <li>إعداد التقارير الدورية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية - قسم المناهج وطرق التدريس</div>
+                    </div>
+                `
+            },
+            member1_3: {
+                title: 'د. خالد عبدالله السالم',
+                subtitle: 'عضو لجنة البرنامج الأكاديمي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في اجتماعات اللجنة</li>
+                                <li>تقديم المشورة والتوصيات</li>
+                                <li>المساهمة في اتخاذ القرارات</li>
+                                <li>متابعة تنفيذ المهام المكلف بها</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee2: {
+                title: 'اللجنة الرئيسية لمعايير ضمان جودة البرنامج',
+                subtitle: 'المستوى الثاني - لجنة الجودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطبيق معايير ضمان الجودة الأكاديمية</li>
+                                <li>الإشراف على اللجان الفرعية للمعايير الستة</li>
+                                <li>إعداد تقارير الجودة الدورية</li>
+                                <li>متابعة تنفيذ خطط التحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">مهام رئيسة اللجنة الرئيسية لمعايير ضمان جودة البرنامج</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>قيادة وتنظيم أنشطة الاعتماد البرامجي</li>
+                                        <li>إعداد خطة تنفيذية بمعالم زمنية محددة لاستكمال متطلبات الاعتماد</li>
+                                        <li>الإشراف المباشر على اللجان الفرعية لضمان تنفيذ المهام المطلوبة في المواعيد المحددة</li>
+                                        <li>الإشراف على تنفيذ ومتابعة خطط العمل المقدمة من اللجان الفرعية</li>
+                                        <li>الإشراف على تدريب وتأهيل الكوادر الأكاديمية والفنية والإدارية على أنشطة الاعتماد الأكاديمي</li>
+                                        <li>الإشراف على نشر ثقافة الجودة والاعتماد</li>
+                                        <li>توثيق مراحل الإنجاز في محاضر اجتماعات معتمدة ومتابعة المحاضر</li>
+                                        <li>مراجعة تقارير الإنجاز المرحلية والنهائية</li>
+                                        <li>الإشراف على الزيارة النظيرة والتجريبية وزيارات المراجعة الخارجية للبرنامج، بالتنسيق مع مديرة البرنامج الأكاديمي</li>
+                                        <li>الترتيب لزيارة فريق التقويم الأولي من قبل عمادة التطوير والجودة</li>
+                                        <li>إدارة الاجتماعات وتوزيع المهام والتواصل مع فريق العمل</li>
+                                        <li>الإشراف على تهيئة غرف عرض الأدلة إلكترونياً وورقياً لاستقبال المراجعين بالتنسيق مع مديرة البرنامج</li>
+                                        <li>متابعة تقارير المتابعة الدورية للبرامج المعتمدة</li>
+                                        <li>متابعة تقارير رفع الشرط إن وجدت للبرامج المعتمدة</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">مهام رؤساء اللجان الفرعية</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>تشخيص الوضع الراهن للبرنامج حول استيفائه لكل معيار</li>
+                                        <li>وضع خطة عمل لاستيفاء المعايير بما يضمن حصول البرامج على الاعتماد</li>
+                                        <li>تهيئة أعضاء الهيئة التعليمية والمستفيدين من البرنامج (طلاب / خريجات / أرباب عمل) لزيارة المراجعين من خلال عقد ورش عمل للتعريف بالدراسة الذاتية</li>
+                                        <li>المساهمة في إعداد النسخة النهائية من الدراسة الذاتية وذلك بالعمل على إعداد الجزء الخاص بالمعيار</li>
+                                        <li>استيفاء ملحوظات المراجعين الخارجيين للبرنامج بعد زيارة الاعتماد</li>
+                                        <li>إدارة الاجتماعات وتوزيع المهام والتواصل مع فريق العمل</li>
+                                        <li>استيفاء متطلبات تقارير المتابعة الدورية للبرنامج المعتمدة</li>
+                                        <li>استيفاء متطلبات تقارير رفع الشرط إن وجدت للبرنامج المعتمدة</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">مهام أعضاء اللجان الفرعية</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>جمع الأدلة في ضوء معايير الاعتماد والمحكات المحددة له</li>
+                                        <li>متابعة تطبيق الاستبانات على المستوى البرامجي وتقاريرها</li>
+                                        <li>استيفاء جمع مؤشرات الأداء وتقاريرها</li>
+                                        <li>المساهمة في إعداد النسخة الأولية للدراسة الذاتية وذلك بالعمل على إعداد الجزء الخاص بالمعيار</li>
+                                        <li>استيفاء ملحوظات الرأي المستقل على الدراسة الذاتية</li>
+                                        <li>العمل على المتابعة الدورية للبرنامج المعتمدة</li>
+                                        <li>العمل على رفع الشرط إن وجدت للبرنامج المعتمدة</li>
+                                        <li>إعداد تقارير شهرية ودورية للإنجازات</li>
+                                        <li>حضور الاجتماعات</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">وحدة ضمان الجودة - كلية التربية</div>
+                    </div>
+                `
+            },
+            member2_1: {
+                title: 'د. نورة السلامة',
+                subtitle: 'رئيسة اللجنة الرئيسية لمعايير ضمان الجودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - رئيسة قسم التعليم والتعلم - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة جهود ضمان الجودة في البرنامج</li>
+                                <li>التنسيق بين اللجان الفرعية</li>
+                                <li>إعداد التقارير السنوية للجودة</li>
+                                <li>متابعة تطبيق المعايير الأكاديمية</li>
+                                <li>الإشراف العام على أنشطة ضمان الجودة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member2_2: {
+                title: 'د. علياء الجارد',
+                subtitle: 'نائب رئيس اللجنة الرئيسية لمعايير ضمان الجودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">نائب الرئيس - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>النيابة عن رئيسة اللجنة في حال غيابها</li>
+                                <li>التنسيق بين اللجان المختلفة</li>
+                                <li>متابعة تنفيذ خطط الجودة</li>
+                                <li>الإشراف على تطبيق معايير الجودة في البرنامج</li>
+                                <li>إعداد التقارير الفنية والإدارية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member2_3: {
+                title: 'أ.د. أفنان العييد',
+                subtitle: 'عضو اللجنة الرئيسية - رئيسة لجنة البحث العلمي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة الرئيسية - رئيسة لجنة البحث العلمي - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة أنشطة البحث العلمي في البرنامج</li>
+                                <li>المشاركة في تطوير معايير الجودة</li>
+                                <li>الإشراف على مشاريع الطلاب البحثية</li>
+                                <li>تقديم التقارير البحثية للجنة الرئيسية</li>
+                                <li>دعم النشر العلمي والابتكار</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member2_4: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'عضو اللجنة الرئيسية - رئيسة لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة الرئيسية - رئيسة لجنة التعليم والتعلم - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة تطوير المناهج والمقررات الدراسية</li>
+                                <li>تحسين استراتيجيات التدريس والتعلم</li>
+                                <li>تقييم نواتج التعلم وفعالية البرامج</li>
+                                <li>تقديم التقارير التعليمية للجنة الرئيسية</li>
+                                <li>دعم التعلم الإلكتروني والتقنيات الحديثة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member2_5: {
+                title: 'د. أمل الجار الله',
+                subtitle: 'عضو اللجنة الرئيسية - رئيسة لجنة الطلاب',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة الرئيسية - رئيسة لجنة الطلاب - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على شؤون الطلاب وخدماتهم</li>
+                                <li>إدارة عمليات القبول والتسجيل</li>
+                                <li>تقديم الدعم الأكاديمي والإرشاد للطلاب</li>
+                                <li>تقديم التقارير الطلابية للجنة الرئيسية</li>
+                                <li>تنظيم الأنشطة والفعاليات الطلابية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - عمادة شؤون الطلاب</div>
+                    </div>
+                `
+            },
+            member2_6: {
+                title: 'د. وفاء العلاوي',
+                subtitle: 'عضو اللجنة الرئيسية - رئيسة لجنة مصادر التعلم والتجهيزات',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة الرئيسية - رئيسة لجنة مصادر التعلم والتجهيزات - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على المصادر التعليمية والمكتبية</li>
+                                <li>إدارة المرافق والتجهيزات التعليمية</li>
+                                <li>تطوير البنية التحتية للبرنامج</li>
+                                <li>تقديم التقارير الفنية للجنة الرئيسية</li>
+                                <li>دعم التقنيات التعليمية الحديثة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة المرافق والخدمات</div>
+                    </div>
+                `
+            },
+            member2_7: {
+                title: 'د. صفية الدايل',
+                subtitle: 'عضو اللجنة الرئيسية - رئيسة لجنة هيئة التدريس',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة الرئيسية - رئيسة لجنة هيئة التدريس - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على شؤون أعضاء هيئة التدريس</li>
+                                <li>تطوير برامج التنمية المهنية للأعضاء</li>
+                                <li>تقييم الأداء التدريسي والأكاديمي</li>
+                                <li>تقديم التقارير التطويرية للجنة الرئيسية</li>
+                                <li>دعم البحث العلمي والتطوير المهني</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member2_8: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'منسقة إدارية للجودة - سكرتيرة اللجنة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">منسقة إدارية للجودة - سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق الإداري بين أعضاء اللجنة</li>
+                                <li>إدارة المراسلات ووثائق الجودة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة البرنامج</div>
+                    </div>
+                `
+            },
+            committee3_1: {
+                title: 'المعيار 1: إدارة البرنامج',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير الهيكل التنظيمي للبرنامج</li>
+                                <li>إعداد الخطط الاستراتيجية والتشغيلية</li>
+                                <li>متابعة تنفيذ السياسات والإجراءات</li>
+                                <li>إدارة الموارد المالية والبشرية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">إدارة البرنامج - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_1_1: {
+                title: 'د. علياء الجارد',
+                subtitle: 'رئيسة لجنة إدارة البرنامج - مديرة البرنامج',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة الجوانب الإدارية للبرنامج</li>
+                                <li>تطوير السياسات والإجراءات الإدارية</li>
+                                <li>إدارة الموارد والميزانيات</li>
+                                <li>التنسيق مع الجهات المعنية</li>
+                                <li>الإشراف المباشر على تنفيذ البرنامج</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_2: {
+                title: 'د. عبير العجلان',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير الخطط الإدارية</li>
+                                <li>متابعة تنفيذ القرارات الإدارية</li>
+                                <li>إعداد التقارير الإدارية</li>
+                                <li>تقديم الاستشارات في إدارة البرنامج</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_3: {
+                title: 'أ.د. أفنان العييد',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة الأكاديمية في إدارة البرنامج</li>
+                                <li>المساهمة في وضع الاستراتيجيات الإدارية</li>
+                                <li>دعم اتخاذ القرارات الإدارية</li>
+                                <li>تقديم التوجيه والإرشاد الإداري</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_4: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في التخطيط الاستراتيجي للبرنامج</li>
+                                <li>تقديم الخبرة في الإدارة الأكاديمية</li>
+                                <li>دعم تطوير السياسات الإدارية</li>
+                                <li>المشاركة في تقييم الأداء الإداري</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_5: {
+                title: 'د. هند الثنيان',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير الإجراءات الإدارية</li>
+                                <li>متابعة تنفيذ الخطط التشغيلية</li>
+                                <li>إعداد التقارير والوثائق الإدارية</li>
+                                <li>دعم عمليات التحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_6: {
+                title: 'د. وفاء العلاوي',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في إدارة الموارد والتجهيزات</li>
+                                <li>دعم التخطيط الإداري للبرنامج</li>
+                                <li>متابعة تطبيق المعايير الإدارية</li>
+                                <li>تقديم التقارير الإدارية المتخصصة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_1_7: {
+                title: 'د. صفية الدايل',
+                subtitle: 'عضو لجنة إدارة البرنامج - أستاذ مشارك',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في الإدارة الأكاديمية</li>
+                                <li>المساهمة في تطوير هيكل البرنامج الإداري</li>
+                                <li>دعم عمليات التقييم والمراجعة الإدارية</li>
+                                <li>تقديم الاستشارات الإدارية المتقدمة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee3_2: {
+                title: 'المعيار 2: التعليم والتعلم',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير المناهج والمقررات الدراسية</li>
+                                <li>تحسين استراتيجيات التدريس والتعلم</li>
+                                <li>تقييم نواتج التعلم</li>
+                                <li>دعم التعلم الإلكتروني والتقنيات الحديثة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">قسم المناهج وطرق التدريس - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_2_1: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'رئيسة لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة تطوير المناهج والمقررات الدراسية</li>
+                                <li>تحسين استراتيجيات التدريس والتعلم</li>
+                                <li>تقييم نواتج التعلم وفعالية البرامج</li>
+                                <li>دعم التعلم الإلكتروني والتقنيات الحديثة</li>
+                                <li>الإشراف على جودة العملية التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_2: {
+                title: 'د. مها الفريح',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير المناهج والمقررات</li>
+                                <li>تقييم استراتيجيات التدريس</li>
+                                <li>دعم التطوير المهني لأعضاء هيئة التدريس</li>
+                                <li>إعداد التقارير التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_3: {
+                title: 'د. عبير العجلان',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في تطوير المحتوى التعليمي</li>
+                                <li>تقييم طرق التدريس والتعلم</li>
+                                <li>دعم التعلم الإلكتروني</li>
+                                <li>متابعة تطبيق معايير الجودة التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_4: {
+                title: 'د. أمل القحطاني',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير البرامج التعليمية</li>
+                                <li>تقييم نواتج التعلم</li>
+                                <li>دعم استراتيجيات التعلم النشط</li>
+                                <li>إعداد التقارير والدراسات التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_5: {
+                title: 'د. هيفاء العودان',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير أساليب التقييم والقياس</li>
+                                <li>المساهمة في تحسين جودة التعليم</li>
+                                <li>دعم التقنيات التعليمية الحديثة</li>
+                                <li>متابعة تطبيق المعايير الأكاديمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_6: {
+                title: 'أ. نوره أبوهلال',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - محاضر</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير المواد التعليمية</li>
+                                <li>دعم الطلاب في العملية التعليمية</li>
+                                <li>تطبيق استراتيجيات التدريس الحديثة</li>
+                                <li>المشاركة في أنشطة التطوير المهني</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_2_7: {
+                title: 'أ. مي الجاسر',
+                subtitle: 'عضو لجنة التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - محاضر</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير المحتوى التعليمي والأنشطة</li>
+                                <li>دعم التعلم التفاعلي والتشاركي</li>
+                                <li>تقييم فعالية طرق التدريس</li>
+                                <li>المساهمة في تحسين تجربة الطلاب التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee3_3: {
+                title: 'المعيار 3: الطلاب',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>إدارة عمليات القبول والتسجيل</li>
+                                <li>تقديم الدعم الأكاديمي والإرشاد</li>
+                                <li>متابعة تقدم الطلاب الأكاديمي</li>
+                                <li>تنظيم الأنشطة الطلابية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">عمادة شؤون الطلاب - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_3_1: {
+                title: 'د. أمل الجار الله',
+                subtitle: 'رئيسة لجنة الطلاب',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على شؤون الطلاب وخدماتهم</li>
+                                <li>إدارة عمليات القبول والتسجيل</li>
+                                <li>تقديم الدعم الأكاديمي والإرشاد للطلاب</li>
+                                <li>تنظيم الأنشطة والفعاليات الطلابية</li>
+                                <li>حل المشكلات الطلابية ومتابعة تقدمهم الأكاديمي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_3_2: {
+                title: 'د. ريم المبارك',
+                subtitle: 'عضو لجنة الطلاب',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير خدمات الطلاب</li>
+                                <li>متابعة الأداء الأكاديمي للطلاب</li>
+                                <li>تقديم الإرشاد الأكاديمي والمهني</li>
+                                <li>المشاركة في حل المشكلات الطلابية</li>
+                                <li>إعداد التقارير الطلابية والإحصائيات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_3_3: {
+                title: 'د. منى الزهراني',
+                subtitle: 'عضو لجنة الطلاب',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>دعم الطلاب في رحلتهم الأكاديمية</li>
+                                <li>تطوير برامج الدعم الطلابي</li>
+                                <li>متابعة احتياجات الطلاب ومتطلباتهم</li>
+                                <li>تنظيم الأنشطة التعليمية والثقافية</li>
+                                <li>تقييم مستوى رضا الطلاب عن الخدمات المقدمة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee3_4: {
+                title: 'المعيار 4: هيئة التدريس',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>استقطاب وتعيين أعضاء هيئة التدريس</li>
+                                <li>تطوير قدرات أعضاء هيئة التدريس</li>
+                                <li>تقييم الأداء التدريسي</li>
+                                <li>دعم البحث العلمي والتطوير المهني</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">عمادة شؤون أعضاء هيئة التدريس - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_4_1: {
+                title: 'د. صفية الدايل',
+                subtitle: 'رئيسة لجنة هيئة التدريس',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على شؤون أعضاء هيئة التدريس</li>
+                                <li>تطوير برامج التنمية المهنية للأعضاء</li>
+                                <li>تقييم الأداء التدريسي والأكاديمي</li>
+                                <li>دعم البحث العلمي والتطوير المهني</li>
+                                <li>تنسيق برامج التطوير المهني المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_4_2: {
+                title: 'د. مرفت بابعير',
+                subtitle: 'عضو لجنة هيئة التدريس',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير أعضاء هيئة التدريس</li>
+                                <li>تنظيم ورش العمل التدريبية والتطويرية</li>
+                                <li>متابعة الأداء الأكاديمي والتدريسي</li>
+                                <li>إعداد التقارير التطويرية والتقييمية</li>
+                                <li>دعم برامج التنمية المهنية المستمرة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_4_3: {
+                title: 'أ. مي الجاسر',
+                subtitle: 'عضو لجنة هيئة التدريس',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - محاضر</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في أنشطة تطوير هيئة التدريس</li>
+                                <li>تنفيذ برامج التدريب والتطوير المهني</li>
+                                <li>دعم الأعضاء الجدد في التأقلم والتطوير</li>
+                                <li>المساهمة في تقييم احتياجات التطوير المهني</li>
+                                <li>تنظيم الفعاليات التطويرية والتدريبية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee3_5: {
+                title: 'المعيار 5: المصادر والتجهيزات',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>توفير المصادر التعليمية والمكتبية</li>
+                                <li>إدارة المرافق والتجهيزات</li>
+                                <li>صيانة وتطوير البنية التحتية</li>
+                                <li>دعم التقنيات التعليمية الحديثة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">إدارة المرافق والخدمات - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_5_1: {
+                title: 'د. وفاء العلاوي',
+                subtitle: 'رئيسة لجنة المصادر والتجهيزات',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>الإشراف على المصادر التعليمية والمكتبية</li>
+                                <li>إدارة المرافق والتجهيزات التعليمية</li>
+                                <li>تطوير البنية التحتية للبرنامج</li>
+                                <li>دعم التقنيات التعليمية الحديثة</li>
+                                <li>تقديم التقارير الفنية للجنة الرئيسية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_5_2: {
+                title: 'د. غزلاء الحويل',
+                subtitle: 'عضو لجنة المصادر والتجهيزات',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير المصادر التعليمية</li>
+                                <li>متابعة صيانة وتطوير التجهيزات</li>
+                                <li>تقييم احتياجات البرنامج من المصادر</li>
+                                <li>إعداد التقارير الفنية والتطويرية</li>
+                                <li>دعم استخدام التقنيات الحديثة في التعليم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_5_3: {
+                title: 'أ. نورة أبوهلال',
+                subtitle: 'عضو لجنة المصادر والتجهيزات',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - محاضر</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساعدة في إدارة المصادر التعليمية</li>
+                                <li>متابعة استخدام التجهيزات والمرافق</li>
+                                <li>تقديم الدعم التقني للطلاب والأعضاء</li>
+                                <li>المساهمة في تطوير بيئة التعلم</li>
+                                <li>إعداد التقارير التشغيلية للمصادر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee3_6: {
+                title: 'المعيار 6: البحوث والمشاريع',
+                subtitle: 'المستوى الثالث - اللجان الفرعية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تشجيع البحث العلمي والابتكار</li>
+                                <li>الإشراف على مشاريع الطلاب البحثية</li>
+                                <li>دعم النشر العلمي</li>
+                                <li>تنظيم المؤتمرات والندوات العلمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">عمادة البحث العلمي - كلية التربية</div>
+                    </div>
+                `
+            },
+            member3_6_1: {
+                title: 'أ.د. أفنان العييد',
+                subtitle: 'رئيسة لجنة البحوث والمشاريع',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة الأنشطة البحثية في البرنامج</li>
+                                <li>الإشراف على مشاريع الطلاب البحثية</li>
+                                <li>تشجيع النشر العلمي والابتكار</li>
+                                <li>تنظيم الفعاليات والمؤتمرات البحثية</li>
+                                <li>تطوير استراتيجيات البحث العلمي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_6_2: {
+                title: 'د. غادة البكري',
+                subtitle: 'عضو لجنة البحوث والمشاريع',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير البحث العلمي</li>
+                                <li>الإشراف على مشاريع التخرج</li>
+                                <li>دعم النشر الأكاديمي والعلمي</li>
+                                <li>إعداد التقارير البحثية</li>
+                                <li>تقييم المشاريع البحثية للطلاب</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member3_6_3: {
+                title: 'د. مشاعل السيف',
+                subtitle: 'عضو لجنة البحوث والمشاريع',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>دعم الأنشطة البحثية والعلمية</li>
+                                <li>المساهمة في الإشراف على البحوث</li>
+                                <li>تطوير منهجيات البحث العلمي</li>
+                                <li>تقديم الاستشارات البحثية للطلاب</li>
+                                <li>المشاركة في تقييم المشاريع البحثية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            committee4_1: {
+                title: 'لجنة قياس وتقويم نواتج التعلم',
+                subtitle: 'المستوى الرابع - اللجان المساندة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير أدوات قياس نواتج التعلم</li>
+                                <li>تقييم مدى تحقق نواتج التعلم</li>
+                                <li>تحليل البيانات وإعداد التقارير</li>
+                                <li>تقديم التوصيات للتحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">المهام التفصيلية للجنة</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>مراجعة صياغة نواتج تعلم البرنامج والتحقق من دقتها</li>
+                                        <li>تصميم سلالم التقدير لكل ناتج من نواتج تعلم البرنامج (Program Rubrics) والمقررات وإجراءات قياسها والتحقق من مواءمتها</li>
+                                        <li>تحديد أساليب التقييم المباشرة وغير المباشرة لنواتج تعلم البرنامج بناء على ما ورد في توصيف البرنامج والتحقق من مناسبتها وإقرار التعديل عند الحاجة لذلك مثل دواعي تحديث التوصيف</li>
+                                        <li>مناقشة أساليب التقييم والرفع بالتوصيات للجنة البرنامج</li>
+                                        <li>وضع خطة عمل قياس نواتج تعلم البرنامج وتحديد المقررات والمستويات التي سيتم قياس نواتج التعلم من خلالها</li>
+                                        <li>متابعة تنفيذ الخطط التنفيذية والتحسينية لنواتج التعلم وقياسها</li>
+                                        <li>إعداد تقارير نهائية على مستوى البرنامج عن مستوى تحقق النواتج وتحديد نقاط القوة والاحتياج وخطط التطوير، والرفع بها إلى لجنة البرنامج الأكاديمي</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <span class="detail-label">التبعية:</span>
+                        <div class="detail-content">تتبع المعيارين 2 (التعليم والتعلم) و 3 (الطلاب)</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">وحدة القياس والتقويم - كلية التربية</div>
+                    </div>
+                `
+            },
+            member4_1_1: {
+                title: 'د. علياء الجارد',
+                subtitle: 'رئيسة لجنة قياس وتقويم نواتج التعلم - مديرة البرنامج',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة عمليات قياس وتقويم نواتج التعلم</li>
+                                <li>الإشراف على تطوير أدوات التقييم</li>
+                                <li>تحليل نتائج التقويم وإعداد التقارير</li>
+                                <li>التنسيق مع اللجان الأخرى لضمان جودة التقويم</li>
+                                <li>متابعة تطبيق معايير القياس والتقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_2: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'نائبة رئيسة لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">نائبة رئيسة اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>مساعدة رئيسة اللجنة في إدارة أعمال اللجنة</li>
+                                <li>المساهمة في تطوير أدوات القياس والتقويم</li>
+                                <li>الإشراف على تحليل البيانات والنتائج</li>
+                                <li>إعداد التقارير الإحصائية والتحليلية</li>
+                                <li>تقديم التوصيات لتحسين عمليات التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_3: {
+                title: 'أ.د. ريم المعيذر',
+                subtitle: 'عضو لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تصميم أدوات القياس والتقويم</li>
+                                <li>تقييم مدى تحقق نواتج التعلم</li>
+                                <li>تحليل البيانات وإعداد التقارير</li>
+                                <li>تقديم الخبرة الأكاديمية في عمليات التقويم</li>
+                                <li>المشاركة في وضع معايير التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_4: {
+                title: 'د. عبير العجلان',
+                subtitle: 'عضو لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير أدوات القياس</li>
+                                <li>جمع وتحليل البيانات المتعلقة بنواتج التعلم</li>
+                                <li>إعداد التقارير الدورية للتقويم</li>
+                                <li>متابعة تطبيق معايير القياس</li>
+                                <li>تقديم التوصيات للتحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_5: {
+                title: 'د. مرفت بابعير',
+                subtitle: 'عضو لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في عمليات القياس والتقويم</li>
+                                <li>تطوير أساليب التقييم المناسبة</li>
+                                <li>تحليل نتائج التقويم وإعداد التقارير</li>
+                                <li>متابعة تحقق نواتج التعلم المستهدفة</li>
+                                <li>المشاركة في تطوير معايير التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_6: {
+                title: 'د. مها الفريح',
+                subtitle: 'عضو لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تصميم وتطوير أدوات التقويم</li>
+                                <li>تقييم فعالية طرق القياس المستخدمة</li>
+                                <li>تحليل البيانات الإحصائية للنتائج</li>
+                                <li>إعداد التقارير التحليلية للأداء</li>
+                                <li>تقديم المشورة في تطوير عمليات التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_1_7: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'سكرتيرة لجنة قياس وتقويم نواتج التعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">سكرتيرة اللجنة - سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق الإداري بين أعضاء اللجنة</li>
+                                <li>إدارة المراسلات ووثائق التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة البرنامج</div>
+                    </div>
+                `
+            },
+            committee4_2: {
+                title: 'لجنة الاستبانات ومؤشرات الأداء',
+                subtitle: 'المستوى الرابع - اللجان المساندة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تصميم وتطبيق الاستبانات</li>
+                                <li>جمع آراء المستفيدين</li>
+                                <li>تحليل مؤشرات الأداء</li>
+                                <li>إعداد تقارير التحسين</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">المهام التفصيلية للجنة</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>إعداد خطة لتفعيل الاستبانات ومؤشرات الأداء على مستوى البرنامج ومتابعة تنفيذها</li>
+                                        <li>إعداد المقارنة المرجعية لمؤشرات الأداء على مستوى البرنامج</li>
+                                        <li>متابعة نسبة الاستجابة على الاستبانات والعمل على رفعها من خلال نشر الروابط بين الفئات المستهدفة</li>
+                                        <li>جمع وتحليل قيم مؤشرات الأداء الخاصة بالبرنامج</li>
+                                        <li>عرض ومناقشة النتائج على لجنة البرنامج</li>
+                                        <li>إعداد التقارير اللازمة للاستبانات ومؤشرات الأداء على مستوى البرنامج ومتابعة تنفيذ الخطط التطويرية لها</li>
+                                        <li>الرفع بالتقارير النهائية إلى إدارة جودة التعليم والتعلم من خلال لجنة البرنامج</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <span class="detail-label">التبعية:</span>
+                        <div class="detail-content">تتبع المعيار 1 (إدارة البرنامج)</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">وحدة ضمان الجودة - كلية التربية</div>
+                    </div>
+                `
+            },
+            member4_2_1: {
+                title: 'د. علياء الجارد',
+                subtitle: 'رئيسة لجنة الاستبانات ومؤشرات الأداء - مديرة البرنامج',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة عمليات تصميم وتطبيق الاستبانات</li>
+                                <li>الإشراف على جمع وتحليل مؤشرات الأداء</li>
+                                <li>متابعة تطبيق الاستبانات على جميع المستفيدين</li>
+                                <li>إعداد التقارير الشاملة لمؤشرات الأداء</li>
+                                <li>التنسيق مع اللجان الأخرى لضمان جودة البيانات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_2: {
+                title: 'د. تهاني الرؤساء',
+                subtitle: 'نائبة رئيسة لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">نائبة رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>مساعدة رئيسة اللجنة في إدارة أعمال اللجنة</li>
+                                <li>الإشراف على تطبيق الاستبانات</li>
+                                <li>تحليل البيانات الإحصائية ومؤشرات الأداء</li>
+                                <li>إعداد التقارير التحليلية والتوصيات</li>
+                                <li>متابعة تنفيذ خطط التحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_3: {
+                title: 'د. هيفاء العودان',
+                subtitle: 'عضو لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تصميم وتطوير الاستبانات</li>
+                                <li>جمع وتحليل البيانات من المستفيدين</li>
+                                <li>متابعة مؤشرات الأداء الأكاديمي</li>
+                                <li>إعداد التقارير الدورية والتحليلية</li>
+                                <li>تقديم التوصيات لتحسين الأداء</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_4: {
+                title: 'د. ريم المبارك',
+                subtitle: 'عضو لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في تطوير أدوات جمع البيانات</li>
+                                <li>تطبيق الاستبانات على الطلاب والخريجين</li>
+                                <li>تحليل مؤشرات رضا المستفيدين</li>
+                                <li>إعداد التقارير الإحصائية</li>
+                                <li>متابعة تطبيق التوصيات والتحسينات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_5: {
+                title: 'أ.د. سهام الجريوي',
+                subtitle: 'عضو لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة الأكاديمية في تطوير الاستبانات</li>
+                                <li>الإشراف على جودة أدوات القياس</li>
+                                <li>تحليل البيانات وتفسير النتائج</li>
+                                <li>إعداد التقارير الأكاديمية المتخصصة</li>
+                                <li>تقديم التوصيات الاستراتيجية للتطوير</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_6: {
+                title: 'أ.د. وضحى العتيبي',
+                subtitle: 'عضو لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير منهجيات جمع البيانات</li>
+                                <li>تقييم فعالية أدوات القياس المستخدمة</li>
+                                <li>تحليل مؤشرات الأداء الأكاديمي والإداري</li>
+                                <li>إعداد الدراسات التحليلية المتقدمة</li>
+                                <li>تقديم المشورة في تطوير نظم المتابعة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_7: {
+                title: 'د. جواهر الرشود',
+                subtitle: 'عضو لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المشاركة في تصميم وتطبيق الاستبانات</li>
+                                <li>جمع البيانات من أصحاب المصلحة</li>
+                                <li>تحليل مؤشرات الجودة والأداء</li>
+                                <li>إعداد التقارير التقييمية</li>
+                                <li>متابعة تنفيذ خطط التحسين والتطوير</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_2_8: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'سكرتيرة لجنة الاستبانات ومؤشرات الأداء',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">سكرتيرة اللجنة - سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق الإداري لتطبيق الاستبانات</li>
+                                <li>إدارة المراسلات ووثائق اللجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة البرنامج</div>
+                    </div>
+                `
+            },
+            committee4_3: {
+                title: 'لجنة الاختبارات والتقويم',
+                subtitle: 'المستوى الرابع - اللجان المساندة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تطوير معايير الاختبارات</li>
+                                <li>مراجعة جودة الاختبارات</li>
+                                <li>ضمان عدالة التقويم</li>
+                                <li>تحليل نتائج الاختبارات</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">المهام التفصيلية للجنة</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>إعداد خطة لمراجعة الاختبارات وتوزيع المهام على أعضاء هيئة التدريس</li>
+                                        <li>مطابقة جدول توزيع الدرجات المعتمد من لجنة قياس وتقويم نواتج تعلم البرنامج مع أسئلة الاختبارات</li>
+                                        <li>مراجعة أسئلة الاختبارات داخل البرنامج التعليمي والتحقق من ربط الأسئلة بنواتج التعلم المستهدفة</li>
+                                        <li>حصر نتائج الاختبارات في كل فصل دراسي وتحليل النتائج واقتراح التوصيات المناسبة</li>
+                                        <li>مراجعة نتائج الاختبارات وفقاً لخطة المراجعة في الفقرة (1) ومطابقة كشوف درجات الطالبات في النتيجة النهائية للمقرر وذلك لجميع المقررات الدراسية قبل ترحيل النتيجة</li>
+                                        <li>حصر نتائج مشاريع التخرج والتدريب الميداني والمقررات التي ليس لها اختبارات نهائية في كل فصل دراسي وتحليل النتائج واقتراح التوصيات المناسبة</li>
+                                        <li>تحديد المقررات التي حدث بها انحراف عن المنحنى المعياري ومراجعة نتائج جميع أساليب التقييم لتلك المقررات، والاطلاع على (التعليق على نتائج الطلاب) في تقرير المقرر ثم إعداد تقرير عن أسباب الانحراف في النتائج</li>
+                                        <li>دراسة المواضيع المتعلقة بالاختبارات (أعذار غياب الطالبات، وطلب إعادة التصحيح والتظلم على الدرجات) ورفعها لمجلس القسم</li>
+                                        <li>تلقي شكاوى الطالبات حول الاختبارات ودراستها والتوصية باتخاذ الإجراءات النظامية حيالها ومن ثم رفعها لمجلس القسم</li>
+                                        <li>اقتراح التدريب اللازم للأعضاء بشأن أساليب التقييم مثل دورة مطوري الأسئلة</li>
+                                        <li>إعداد تقرير سنوي عن أنشطة اللجنة والرفع بها لمديرة البرنامج</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <span class="detail-label">التبعية:</span>
+                        <div class="detail-content">تتبع المعيار 2 (التعليم والتعلم)</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">وحدة الاختبارات - كلية التربية</div>
+                    </div>
+                `
+            },
+            member4_3_1: {
+                title: 'د. علياء الجارد',
+                subtitle: 'رئيسة لجنة الاختبارات والتقويم - مديرة البرنامج',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة عمليات الاختبارات والتقويم في البرنامج</li>
+                                <li>الإشراف على تطوير معايير الاختبارات</li>
+                                <li>ضمان جودة وعدالة التقويم</li>
+                                <li>تحليل النتائج وإعداد التقارير</li>
+                                <li>التنسيق مع اللجان الأخرى لضمان جودة التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_3_2: {
+                title: 'د. أمل القحطاني',
+                subtitle: 'نائبة رئيسة لجنة الاختبارات والتقويم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">نائبة رئيسة اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>مساعدة رئيسة اللجنة في إدارة أعمال اللجنة</li>
+                                <li>المساهمة في تطوير أدوات الاختبارات والتقويم</li>
+                                <li>مراجعة جودة الاختبارات والتأكد من معاييرها</li>
+                                <li>تحليل النتائج وإعداد التقارير التقويمية</li>
+                                <li>تقديم التوصيات لتحسين عمليات التقويم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_3_3: {
+                title: 'د. نوال الربيعان',
+                subtitle: 'عضو لجنة الاختبارات والتقويم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مشارك</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تصميم وتطوير الاختبارات</li>
+                                <li>مراجعة جودة أدوات التقويم</li>
+                                <li>تقييم فعالية طرق الاختبار المستخدمة</li>
+                                <li>تحليل البيانات الإحصائية للنتائج</li>
+                                <li>إعداد التقارير التحليلية للأداء</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_3_4: {
+                title: 'د. هند الثنيان',
+                subtitle: 'عضو لجنة الاختبارات والتقويم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تطوير أدوات الاختبارات</li>
+                                <li>متابعة تطبيق معايير التقويم</li>
+                                <li>جمع وتحليل البيانات المتعلقة بالاختبارات</li>
+                                <li>إعداد التقارير الدورية للتقويم</li>
+                                <li>تقديم التوصيات لتحسين عمليات الاختبارات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_3_5: {
+                title: 'د. فاطمة الشهري',
+                subtitle: 'عضو لجنة الاختبارات والتقويم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في عمليات التقويم والاختبارات</li>
+                                <li>تطوير أساليب التقييم المناسبة</li>
+                                <li>مراجعة وتحليل نتائج الاختبارات</li>
+                                <li>متابعة تطبيق معايير الجودة في التقويم</li>
+                                <li>المشاركة في إعداد التقارير التقويمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_3_6: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'سكرتيرة لجنة الاختبارات والتقويم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">سكرتيرة اللجنة - سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق الإداري لعمليات الاختبارات</li>
+                                <li>إدارة المراسلات ووثائق اللجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة البرنامج</div>
+                    </div>
+                `
+            },
+            committee4_4: {
+                title: 'اللجنة الاستشارية',
+                subtitle: 'المستوى الرابع - اللجان المساندة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم المشورة الأكاديمية والمهنية</li>
+                                <li>ربط البرنامج بسوق العمل</li>
+                                <li>تقييم مخرجات البرنامج</li>
+                                <li>اقتراح التطويرات والتحسينات</li>
+                                <li>تمثيل أصحاب المصلحة من المجتمع المحلي وأرباب العمل</li>
+                                <li>تقديم التوجيه للطلاب والخريجين</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="expandable-section">
+                            <div class="expand-header" onclick="toggleExpand(this)">
+                                <span class="expand-icon">+</span>
+                                <span class="detail-label">المهام التفصيلية للجنة الاستشارية</span>
+                            </div>
+                            <div class="expand-content">
+                                <div class="detail-content">
+                                    <ul>
+                                        <li>المساهمة الفاعلة في التعرف على احتياجات المؤسسات المهنية، وتقديم المشورة والمقترحات التي تساعد في تطوير البرنامج والخطة الدراسية؛ لتلبية احتياجات سوق العمل بالمملكة.</li>
+                                        <li>تشجيع المؤسسات المهنية في القطاع الحكومي والخاص على المشاركة في البرامج التدريبية والتعليمية، بما فيها الدورات القصيرة وورش العمل، وكذلك المحاضرات والندوات التي يقدمها البرنامج.</li>
+                                        <li>المساهمة في مراجعة رسالة وغايات وأهداف ومؤشرات أداء البرنامج الأكاديمي في ضوء المستجدات العلمية والتكنولوجية ومتطلبات سوق العمل، من خلال تقديم رؤى أكاديمية ومهنية فيما يخص التعليم والبحث العلمي وخدمة المجتمع.</li>
+                                        <li>المساهمة في مراجعة نواتج التعلم المستهدفة على مستوى البرنامج والمقررات، ومدى موائمتها للإطار الوطني للمؤهلات واحتياجات سوق العمل.</li>
+                                        <li>المساهمة في مراجعة توصيف البرنامج وتقاريره السنوية، وتقديم نظرة دقيقة للخطة والمقررات من حيث حداثتها وتميزها في تحقيق أهداف ونواتج البرنامج وتقديم التغذية الراجعة، بما يسهم في إعداد خطط التطوير والتحسين المستمر للبرنامج.</li>
+                                        <li>تقييم كافة أنشطة البرنامج المنهجية واللامنهجية في ضوء معايير الاعتماد الأكاديمي.</li>
+                                        <li>الاطلاع على نتائج مؤشرات أداء البرنامج والتوصية باختيار المقارنات المرجعية الخارجية المناسبة.</li>
+                                        <li>مراجعة خصائص خريجات البرنامج، التي يجب أن تتضح في الرسالة وتنعكس في نواتج التعلم المستهدفة.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <span class="detail-label">تركيبة اللجنة:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>أعضاء هيئة التدريس من البرنامج</li>
+                                <li>ممثلين من أرباب العمل والمجتمع المحلي</li>
+                                <li>ممارسين مهنيين وأكاديميين وخبراء جودة</li>
+                                <li>ممثلين من المجلس الطلابي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التبعية:</span>
+                        <div class="detail-content">تتبع المعيار 3 (الطلاب)</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">مجلس البرنامج - كلية التربية</div>
+                    </div>
+                `
+            },
+            member4_4_1: {
+                title: 'د. نورة السلامة',
+                subtitle: 'رئيسة اللجنة الاستشارية - رئيسة قسم التعليم والتعلم',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">رئيسة اللجنة - رئيسة قسم التعليم والتعلم - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>قيادة الأنشطة الاستشارية للبرنامج</li>
+                                <li>ربط البرنامج بالقطاعات المهنية وسوق العمل</li>
+                                <li>تقديم المشورة الاستراتيجية للتطوير</li>
+                                <li>تقييم مخرجات البرنامج وجودته</li>
+                                <li>التنسيق مع أصحاب المصلحة الخارجيين</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_4_2: {
+                title: 'د. علياء الجارد',
+                subtitle: 'أمينة الجلسة - مديرة البرنامج',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أمينة الجلسة - مديرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وإدارة جلساتها</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ توصيات اللجنة</li>
+                                <li>التنسيق بين أعضاء اللجنة</li>
+                                <li>إعداد التقارير الدورية لأنشطة اللجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_4_3: {
+                title: 'أ.د. أفنان العييد',
+                subtitle: 'عضو اللجنة الاستشارية - أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة الأكاديمية والبحثية</li>
+                                <li>المساهمة في تطوير البرنامج</li>
+                                <li>تقييم جودة المخرجات التعليمية</li>
+                                <li>تقديم المشورة في التطوير الأكاديمي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_4_4: {
+                title: 'د. عبير العجلان',
+                subtitle: 'عضو اللجنة الاستشارية - أستاذ مساعد',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ مساعد</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>المساهمة في تقديم الاستشارات الأكاديمية</li>
+                                <li>تقييم فعالية البرنامج ومخرجاته</li>
+                                <li>المشاركة في وضع خطط التطوير</li>
+                                <li>تقديم التوجيه للطلاب والخريجين</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_4_5: {
+                title: 'أ.د. أمل الموزان',
+                subtitle: 'عضو اللجنة الاستشارية - أستاذ',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو اللجنة - أستاذ</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في التعليم والتعلم</li>
+                                <li>المساهمة في تطوير المناهج والبرامج</li>
+                                <li>تقييم جودة العملية التعليمية</li>
+                                <li>تقديم المشورة الاستراتيجية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - قسم التعليم والتعلم</div>
+                    </div>
+                `
+            },
+            member4_4_6: {
+                title: 'د. نوف الحكمي',
+                subtitle: 'ممثل أرباب العمل والمجتمع المحلي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">Program Manager - Professional Development Department</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تمثيل احتياجات سوق العمل</li>
+                                <li>تقديم المشورة في التطوير المهني</li>
+                                <li>ربط البرنامج بالقطاعات المهنية</li>
+                                <li>تقييم مدى ملاءمة المخرجات لسوق العمل</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                `
+            },
+            member4_4_7: {
+                title: 'أ. عماد الدغيثر',
+                subtitle: 'ممثل أرباب العمل والمجتمع المحلي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">خبير من سوق العمل - مستثمر في شركة سيمانور</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة العملية من سوق العمل</li>
+                                <li>المساهمة في ربط البرنامج بالقطاع الخاص</li>
+                                <li>تقييم مهارات الخريجين المطلوبة</li>
+                                <li>تقديم فرص التدريب والتوظيف</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                `
+            },
+            member4_4_8: {
+                title: 'أ. عبدالعزيز الصيعري',
+                subtitle: 'ممثل أرباب العمل والمجتمع المحلي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">مدير المنتجات - شركة تيتكو (تطوير لتقنيات التعليم)</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في تقنيات التعليم</li>
+                                <li>المساهمة في تطوير المحتوى التقني</li>
+                                <li>ربط البرنامج بصناعة التقنيات التعليمية</li>
+                                <li>تقييم المهارات التقنية للخريجين</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">أرباب العمل / المجتمع المحلي</div>
+                    </div>
+                `
+            },
+            member4_4_9: {
+                title: 'د. عائشة حجازي',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو هيئة تدريس وممارس جودة - جامعة الأميرة نورة بنت عبد الرحمن</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في ضمان الجودة الأكاديمية</li>
+                                <li>المساهمة في تطوير معايير الجودة</li>
+                                <li>تقييم فعالية البرنامج وجودته</li>
+                                <li>تقديم المشورة في التحسين المستمر</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_10: {
+                title: 'أ. منار المحيميد',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">مديرة إدارة التعليم الإلكتروني - جامعة الأميرة نورة</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في التعليم الإلكتروني</li>
+                                <li>المساهمة في تطوير البيئات التعليمية الرقمية</li>
+                                <li>تقييم جودة التعليم الإلكتروني في البرنامج</li>
+                                <li>تقديم المشورة في التقنيات التعليمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_11: {
+                title: 'د. فهد العنزي',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">مدير إدارة التميز المعرفي - المركز الوطني للتعليم الإلكتروني</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في التميز المعرفي والتعليم الإلكتروني</li>
+                                <li>المساهمة في تطوير معايير التميز</li>
+                                <li>تقييم جودة المحتوى التعليمي</li>
+                                <li>تقديم المشورة في التطوير المعرفي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_12: {
+                title: 'د. عبدالعزيز التمامي',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو مجلس إدارة شركة بنية</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في الإدارة والقيادة</li>
+                                <li>المساهمة في ربط البرنامج بالقطاع الخاص</li>
+                                <li>تقييم المهارات الإدارية للخريجين</li>
+                                <li>تقديم المشورة في التطوير المؤسسي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_13: {
+                title: 'د. عبدالله آل محيا',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">عضو مجلس إدارة المركز الوطني للتعليم الإلكتروني ومستشار في وزارة التعليم</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة في السياسات التعليمية</li>
+                                <li>المساهمة في ربط البرنامج بالاستراتيجيات الوطنية</li>
+                                <li>تقييم مواءمة البرنامج مع رؤية 2030</li>
+                                <li>تقديم المشورة في التطوير الاستراتيجي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_14: {
+                title: 'أ.د. دانية العباسي',
+                subtitle: 'ممارس مهني وأكاديمي وخبير جودة',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">أستاذ تكنولوجيا التعليم - جامعة الملك سعود</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تقديم الخبرة الأكاديمية في تكنولوجيا التعليم</li>
+                                <li>المساهمة في تطوير المناهج والبرامج</li>
+                                <li>تقييم جودة المحتوى التقني</li>
+                                <li>تقديم المشورة في البحث والتطوير</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممارس مهني / أكاديمي / خبير جودة</div>
+                    </div>
+                `
+            },
+            member4_4_15: {
+                title: 'أ. ريم بخاري',
+                subtitle: 'ممثل من المجلس الطلابي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">طالبة في برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تمثيل آراء ومصالح الطلاب</li>
+                                <li>تقديم التغذية الراجعة حول البرنامج</li>
+                                <li>المساهمة في تحسين تجربة الطلاب</li>
+                                <li>نقل احتياجات الطلاب للجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممثل من المجلس الطلابي</div>
+                    </div>
+                `
+            },
+            member4_4_16: {
+                title: 'أ. ياسر القحطاني',
+                subtitle: 'ممثل من المجلس الطلابي',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">طالب في برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تمثيل وجهات نظر الطلاب في اللجنة</li>
+                                <li>تقديم مقترحات لتطوير البرنامج</li>
+                                <li>المساهمة في تقييم جودة التعليم</li>
+                                <li>التواصل مع زملاء الطلاب ونقل آرائهم</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">التصنيف:</span>
+                        <div class="detail-content">ممثل من المجلس الطلابي</div>
+                    </div>
+                `
+            },
+            member4_4_17: {
+                title: 'أ. فاطمة السنيدي',
+                subtitle: 'سكرتيرة اللجنة الاستشارية',
+                content: `
+                    <div class="detail-section">
+                        <span class="detail-label">المنصب:</span>
+                        <div class="detail-content">سكرتيرة اللجنة - سكرتيرة برنامج الماجستير المهني في تصميم التعليم والتكنولوجيا</div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">المهام الأساسية:</span>
+                        <div class="detail-content">
+                            <ul>
+                                <li>تنظيم اجتماعات اللجنة وتحضير جدول الأعمال</li>
+                                <li>توثيق محاضر الاجتماعات والقرارات</li>
+                                <li>متابعة تنفيذ القرارات والتوصيات</li>
+                                <li>التنسيق الإداري بين أعضاء اللجنة</li>
+                                <li>إدارة المراسلات ووثائق اللجنة</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <span class="detail-label">جهة الانتماء:</span>
+                        <div class="detail-content">كلية التربية والتنمية البشرية - إدارة البرنامج</div>
+                    </div>
+                `
+            }
+        };
+
+        function showModal(id) {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalSubtitle = document.getElementById('modalSubtitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalContent = document.getElementById('modalContent');
+
+            const normalizedId = id.replace(/-/g, '_');
+            const content = data[normalizedId];
+
+            if (content) {
+                modalTitle.textContent = content.title;
+                modalSubtitle.textContent = content.subtitle;
+                modalBody.innerHTML = content.content;
+                modal.classList.add('active');
+                
+                // Reset scroll position and check for scroll buttons
+                modalContent.scrollTop = 0;
+                setTimeout(() => {
+                    toggleModalScrollButtons();
+                }, 100);
+            }
+        }
+
+        function closeModal(event) {
+            if (!event || event.target.id === 'modal') {
+                document.getElementById('modal').classList.remove('active');
+            }
+        }
+
+        function toggleExpand(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.expand-icon');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                header.classList.remove('expanded');
+                icon.textContent = '+';
+            } else {
+                content.classList.add('show');
+                header.classList.add('expanded');
+                icon.textContent = '−';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Scroll functionality
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide scroll buttons based on scroll position
+        function toggleScrollButtons() {
+            const scrollUpBtn = document.getElementById('scrollUp');
+            const scrollDownBtn = document.getElementById('scrollDown');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.body.scrollHeight;
+            const windowHeight = window.innerHeight;
+
+            // Show scroll up button when scrolled down more than 300px
+            if (scrollTop > 300) {
+                scrollUpBtn.classList.add('show');
+            } else {
+                scrollUpBtn.classList.remove('show');
+            }
+
+            // Show scroll down button when not at bottom (with 100px threshold)
+            if (scrollTop + windowHeight < scrollHeight - 100) {
+                scrollDownBtn.classList.add('show');
+            } else {
+                scrollDownBtn.classList.remove('show');
+            }
+        }
+
+        // Modal scroll functionality
+        function scrollModalToTop() {
+            const modalContent = document.getElementById('modalContent');
+            modalContent.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollModalToBottom() {
+            const modalContent = document.getElementById('modalContent');
+            modalContent.scrollTo({
+                top: modalContent.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide modal scroll buttons based on scroll position
+        function toggleModalScrollButtons() {
+            const modalScrollUpBtn = document.getElementById('modalScrollUp');
+            const modalScrollDownBtn = document.getElementById('modalScrollDown');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (!modalContent || !modalScrollUpBtn || !modalScrollDownBtn) return;
+
+            const scrollTop = modalContent.scrollTop;
+            const scrollHeight = modalContent.scrollHeight;
+            const clientHeight = modalContent.clientHeight;
+
+            // Show scroll up button when scrolled down more than 100px
+            if (scrollTop > 100) {
+                modalScrollUpBtn.classList.add('show');
+            } else {
+                modalScrollUpBtn.classList.remove('show');
+            }
+
+            // Show scroll down button when not at bottom (with 50px threshold)
+            if (scrollTop + clientHeight < scrollHeight - 50) {
+                modalScrollDownBtn.classList.add('show');
+            } else {
+                modalScrollDownBtn.classList.remove('show');
+            }
+        }
+
+        // Listen for scroll events
+        window.addEventListener('scroll', toggleScrollButtons);
+        
+        // Initial check on page load
+        window.addEventListener('load', toggleScrollButtons);
+
+        // Add scroll listener for modal content
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalContent = document.getElementById('modalContent');
+            if (modalContent) {
+                modalContent.addEventListener('scroll', toggleModalScrollButtons);
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99602b9d5206357d',t:'MTc2MTcxNDY2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
