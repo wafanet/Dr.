@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>التحليلات التنبؤية واستشراف الاتجاهات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --purple:#5B2A86; --purple-d:#3F1C5E; --purple-l:#EFE8F6; --purple-m:#D9C9EA;
+  --gold:#C9A227; --gold-l:#FBF4DF; --gold-d:#8A6D12;
+  --ink:#1F1A24; --muted:#5F5868; --line:#E2DCE8; --bg:#F7F5FA; --card:#FFFFFF;
+  --ok:#1E7B4F; --ok-l:#E3F4EA; --bad:#B3261E; --bad-l:#FBE7E5; --blue:#2C7FA8;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.75}
+button,input,select,textarea{font:inherit}
+.app{display:grid;grid-template-columns:290px 1fr;min-height:100vh;background:linear-gradient(to left,var(--purple-d) 290px,var(--bg) 290px)}
+/* sidebar */
+.side{background:var(--purple-d);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{border-bottom:1px solid rgba(255,255,255,.18);padding:0 6px 14px;margin-bottom:12px}
+.brand small{display:block;color:var(--gold);font-weight:600;letter-spacing:.2px}
+.brand b{display:block;font-size:17px;line-height:1.5;margin-top:4px}
+.progress{height:8px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:10px 6px 4px}
+.progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .4s}
+.ptext{font-size:12.5px;color:#d9cfe6;padding:0 6px 10px}
+.nav-axis{font-size:12px;color:var(--gold);font-weight:700;margin:14px 6px 4px}
+.nav button{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:right;background:none;border:0;color:#eee6f5;padding:7px 8px;border-radius:9px;cursor:pointer;font-size:14px;line-height:1.5}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.active{background:#fff;color:var(--purple-d);font-weight:600}
+.nav .dot{flex:0 0 10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.5);margin-top:6px}
+.nav button.done .dot{background:var(--gold);border-color:var(--gold)}
+.nav button.active .dot{border-color:var(--purple)}
+.menu-toggle{display:none}
+/* main */
+.app>div{min-width:0}
+main{padding:28px 36px 40px;max-width:1080px;width:100%;min-width:0}
+.screen{display:none;animation:fade .3s}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kicker{color:var(--gold-d);font-weight:700;font-size:14px}
+h1{font-size:28px;line-height:1.4;margin:4px 0 6px;color:var(--purple-d)}
+h2{font-size:20px;margin:22px 0 8px;color:var(--purple-d)}
+h3{font-size:17px;margin:14px 0 6px}
+.lead{font-size:17.5px;color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin:14px 0;box-shadow:0 1px 2px rgba(40,20,60,.04)}
+.card.act{border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,var(--gold-l),#fff 120px)}
+.act-tag{display:inline-flex;gap:6px;align-items:center;background:var(--gold);color:#2b2000;font-weight:700;font-size:13px;padding:3px 12px;border-radius:99px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:var(--purple-l);border-radius:12px;padding:12px 14px;text-align:center}
+.stat b{display:block;direction:ltr;unicode-bidi:isolate;font-size:26px;color:var(--purple-d);line-height:1.3}
+.stat span{font-size:13.5px;color:var(--muted)}
+.stat.gold{background:var(--gold-l)} .stat.gold b{color:var(--gold-d)}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:right;vertical-align:top}
+th{background:var(--purple-l);color:var(--purple-d);font-weight:600}
+td.num,th.num{text-align:center;direction:ltr}
+.btn{background:var(--purple);color:#fff;border:0;border-radius:10px;padding:9px 18px;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--purple-d)}
+.btn.ghost{background:#fff;color:var(--purple);border:1.5px solid var(--purple)}
+.btn.gold{background:var(--gold);color:#2b2000}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opt{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;text-align:right;cursor:pointer;transition:.15s}
+.opt:hover{border-color:var(--purple-m);background:var(--purple-l)}
+.opt.sel{border-color:var(--purple);background:var(--purple-l)}
+.opt.right{border-color:var(--ok);background:var(--ok-l)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-l)}
+.fb{border-radius:10px;padding:10px 14px;margin-top:10px;display:none;font-size:15px}
+.fb.show{display:block}
+.fb.ok{background:var(--ok-l);border-right:4px solid var(--ok)}
+.fb.no{background:var(--bad-l);border-right:4px solid var(--bad)}
+.fb.info{background:var(--purple-l);border-right:4px solid var(--purple)}
+input[type=number],input[type=text],select,textarea{border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;color:var(--ink)}
+textarea{width:100%;min-height:70px;resize:vertical}
+input[type=range]{accent-color:var(--purple);width:100%}
+.chart{width:100%;height:auto;display:block;direction:ltr}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-left:6px;vertical-align:middle}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--purple-l);color:var(--purple-d);font-size:13px;font-weight:600}
+.quote{border-right:4px solid var(--gold);background:var(--gold-l);padding:10px 16px;border-radius:8px;margin:12px 0;font-weight:500}
+.sorter{display:grid;gap:8px}
+.sort-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sort-item .choices{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:3px 12px;cursor:pointer;font-size:14px}
+.chip.sel{border-color:var(--purple);background:var(--purple);color:#fff}
+.chip.right{border-color:var(--ok);background:var(--ok);color:#fff}
+.chip.wrong{border-color:var(--bad);background:var(--bad);color:#fff}
+.flip{perspective:900px;cursor:pointer;min-height:150px}
+.flip-in{position:relative;width:100%;height:100%;min-height:150px;transition:transform .5s;transform-style:preserve-3d}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:center}
+.face.front{background:var(--purple);color:#fff;text-align:center}
+.face.front b{font-size:18px}
+.face.back{background:#fff;border:1.5px solid var(--purple);transform:rotateY(180deg);font-size:14.5px}
+.matrix{display:grid;grid-template-columns:40px 1fr 1fr;grid-template-rows:1fr 1fr 34px;gap:8px}
+.matrix .ax{display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);font-weight:600}
+.matrix .ax.v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.quad{border-radius:12px;padding:12px;color:#fff;min-height:150px;min-width:0;overflow:hidden}
+.quad h4{margin:0 0 4px;font-size:16px}
+.quad .rate{font-size:30px;font-weight:700;direction:ltr;unicode-bidi:isolate;text-align:right}
+.quad small{display:block;opacity:.9;font-size:13px;line-height:1.5}
+button.quad{border:0;font:inherit;font-weight:600;font-size:16px;cursor:pointer;text-align:center}button.quad:hover{filter:brightness(1.1)}
+.q1{background:#2E7D5B}.q2{background:#5B2A86}.q3{background:#B3261E}.q4{background:#7A6A3A}
+.warn{color:var(--bad);font-weight:700}
+.steps-order .sitem{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:6px 0}
+.steps-order .n{width:28px;height:28px;border-radius:50%;background:var(--purple-l);color:var(--purple-d);display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 28px}
+.steps-order .mv{margin-inline-start:auto;display:flex;gap:4px}
+.steps-order .mv button{border:1px solid var(--line);background:#fff;border-radius:7px;width:30px;height:28px;cursor:pointer}
+.memo{background:#fff;border:2px dashed var(--purple-m);border-radius:12px;padding:16px 18px;white-space:pre-wrap;font-size:15px}
+.check{display:flex;gap:8px;align-items:flex-start;margin:4px 0}
+.check i{font-style:normal;width:22px;height:22px;flex:0 0 22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--line);color:#fff;margin-top:3px}
+.check.ok i{background:var(--ok)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:28px;border-top:1px solid var(--line);padding-top:16px}
+.foot .where{color:var(--muted);font-size:14px}
+.score{font-size:46px;font-weight:700;color:var(--purple-d);text-align:center}
+.note{font-size:13.5px;color:var(--muted)}
+.tag-src{font-size:12.5px;color:var(--muted)}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;background:var(--bg)}
+  .quad{min-height:120px}
+  #baseOpts,#raceBet,#toolBet{grid-template-columns:1fr 1fr!important}
+  .sort-item{grid-template-columns:1fr}
+  .matrix{gap:6px}
+  .quad .rate{font-size:24px}
+  table{display:block;overflow-x:auto}
+  .side{position:fixed;inset:0 0 0 auto;width:290px;z-index:20;transform:translateX(100%);transition:transform .3s;height:100vh}
+  .side.open{transform:none}
+  .menu-toggle{display:inline-block;position:sticky;top:0;z-index:10;margin:10px 16px 0}
+  main{padding:16px}
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  .matrix{grid-template-columns:28px 1fr 1fr}
+  h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side" id="side">
+  <div class="brand">
+    <small>HCD 713 · الأسبوع الثاني عشر</small>
+    <b>التحليلات التنبؤية واستشراف الاتجاهات</b>
+  </div>
+  <div class="progress"><i id="pbar"></i></div>
+  <div class="ptext" id="ptext">0 من 0</div>
+  <nav class="nav" id="nav"></nav>
+</aside>
+<div>
+<button class="btn ghost menu-toggle" id="menuBtn" type="button">☰ المحتويات</button>
+<main id="main">
+
+<!-- ============ 0 الغلاف ============ -->
+<section class="screen" data-axis="البداية" data-title="الغلاف والأهداف">
+  <div class="kicker">الماجستير المهني في تنمية القدرات البشرية للقطاع الحكومي · كلية التربية والتنمية البشرية</div>
+  <h1>الموضوع 12: التحليلات التنبؤية واستشراف الاتجاهات</h1>
+  <p class="lead">من «ماذا حدث؟» إلى «ماذا يُحتمل أن يحدث؟ وكيف نستعد له؟». نتابع في هذه الحزمة قضية وطنية حقيقية من البداية إلى النهاية: <b>البطالة بين السعوديين والسعوديات ومستهدف 5% بحلول 2030</b>.</p>
+  <div class="grid4">
+    <div class="stat"><b>1</b><span>التحليلات التنبؤية</span></div>
+    <div class="stat"><b>2</b><span>استشراف الاتجاهات</span></div>
+    <div class="stat"><b>3</b><span>السيناريوهات المستقبلية</span></div>
+    <div class="stat"><b>4</b><span>البيانات في التخطيط</span></div>
+  </div>
+  <div class="card">
+    <h3>يُتوقَّع في نهاية الحزمة أن يكون الطالب/ة قادرًا/ة على:</h3>
+    <ol>
+      <li>التمييز بين مستويات التحليلات الأربعة.</li>
+      <li>شرح مكونات النموذج التنبؤي وحدوده.</li>
+      <li>تحليل سلسلة زمنية حكومية والتنبؤ بها.</li>
+      <li>التفريق بين التنبؤ والاستشراف.</li>
+      <li>بناء مصفوفة سيناريوهات بمؤشرات إنذار مبكر.</li>
+      <li>صياغة توصية تخطيطية مبنية على الأدلة.</li>
+    </ol>
+  </div>
+  <div class="card act">
+    <span class="act-tag">بطاقة دخول</span>
+    <p>قبل أن تبدأ/ئي: في جملة واحدة، ما الفرق في رأيك بين <b>التنبؤ</b> و<b>الاستشراف</b>؟ سنعود إلى إجابتك في المحور الثاني.</p>
+    <textarea id="entryTicket" placeholder="اكتب/ي إجابتك هنا…"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="saveTicket" type="button">احفظ إجابتي</button><span class="note" id="ticketMsg"></span></div>
+  </div>
+</section>
+
+<!-- ============ 1 السؤال الافتتاحي ============ -->
+<section class="screen" data-axis="البداية" data-title="السؤال الافتتاحي">
+  <div class="kicker">نقطة الانطلاق</div>
+  <h1>هل سنبلغ 5% في 2030؟</h1>
+  <div class="grid3">
+    <div class="stat"><b>12.2%</b><span>2021</span></div>
+    <div class="stat"><b>7.2%</b><span>2025</span></div>
+    <div class="stat gold"><b>5%</b><span>المستهدف الجديد 2030</span></div>
+  </div>
+  <p>انخفض المعدل نحو 5 نقاط في 4 سنوات، وبلغ المستهدف الأصلي 7% مبكرًا، فأُعلن مستهدف جديد: 5% بحلول 2030.</p>
+  <div class="card act">
+    <span class="act-tag">احسب/ي بنفسك</span>
+    <p>لو استمر الانخفاض بالوتيرة نفسها (<b>1.25 نقطة سنويًّا</b>) من 7.2% في 2025، فكم يكون المعدل في 2030؟</p>
+    <div class="row"><input type="number" step="0.01" id="openAns" style="width:130px" placeholder="مثال: 3.5"> <span>%</span> <button class="btn" id="openCheck" type="button">تحقق</button></div>
+    <div class="fb" id="openFb"></div>
+  </div>
+  <div class="card act" id="openVoteCard">
+    <span class="act-tag">تصويت</span>
+    <p>لو كنت صانع/ة قرار، ماذا تحتاج/ين من فريق التحليل؟</p>
+    <div class="opts" id="openVote">
+      <button class="opt" data-v="a" type="button">(أ) رقمًا متوقعًا واحدًا لعام 2030</button>
+      <button class="opt" data-v="b" type="button">(ب) رقمًا + نطاقًا + افتراضات + طريقة</button>
+    </div>
+    <div class="fb info" id="openVoteFb">احتفظ/ي باختيارك. سنرى في المحور الثاني لماذا يكون الرقم وحده خطيرًا.</div>
+  </div>
+</section>
+
+<!-- ============ 2 نشاط 1 ============ -->
+<section class="screen" data-axis="البداية" data-title="نشاط 1: قراءة السلسلة">
+  <div class="kicker">نشاط المحاضرة 1</div>
+  <h1>معدل البطالة للسعوديين ربعيًّا (2021–2025)</h1>
+  <p class="lead">السؤال المحوري: هل يُتوقَّع أن يبلغ المعدل مستهدف 5% بحلول 2030؟ وما السيناريوهات التي قد تغيّر الصورة؟</p>
+  <div class="card">
+    <svg class="chart" id="ch1" viewBox="0 0 900 360"></svg>
+    <div class="row" style="margin-top:8px">
+      <label class="chip" id="tgQ3"><input type="checkbox" hidden> إبراز الربع الثالث</label>
+      <label class="chip" id="tgMA"><input type="checkbox" hidden> المتوسط المتحرك (4 أرباع)</label>
+      <label class="chip" id="tgTarget"><input type="checkbox" hidden> خط المستهدف 5%</label>
+    </div>
+    <p class="tag-src">المصدر: الهيئة العامة للإحصاء، نشرات سوق العمل (مسح القوى العاملة).</p>
+  </div>
+  <div class="card act">
+    <span class="act-tag">مُحقِّق البيانات</span>
+    <div id="q1box"></div>
+  </div>
+</section>
+
+<!-- ============ 3 ما التحليلات التنبؤية + المستويات ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="ما التحليلات التنبؤية؟">
+  <div class="kicker">المحور الأول</div>
+  <h1>ما التحليلات التنبؤية؟</h1>
+  <div class="quote">تقدير احتمالي لا معرفة غيب؛ قيمتها في تقليص عدم اليقين لا إلغائه.</div>
+  <div class="grid3">
+    <div class="card"><h3>الأدوات</h3>بيانات تاريخية + إحصاء + تعلّم آلة لتقدير قيمة أو احتمال مستقبلي.</div>
+    <div class="card"><h3>الغاية</h3>تقنية تتعلم من الخبرة لتدعم قرارات أفضل <span class="tag-src">(Siegel, 2016)</span>.</div>
+    <div class="card"><h3>الجوهر</h3>علاقة بين متغيرات معروفة ومتغير هدف، تُطبَّق على حالات جديدة <span class="tag-src">(Provost &amp; Fawcett, 2013)</span>.</div>
+  </div>
+  <h2>مستويات التحليلات الأربعة</h2>
+  <p class="note">كل مستوى يبني على ما قبله (Davenport &amp; Harris, 2017). التنبؤ الموثوق يحتاج بيانات وصفية سليمة.</p>
+  <table>
+    <tr><th>المستوى</th><th>السؤال</th><th>مثال حكومي</th><th>أدوات شائعة</th></tr>
+    <tr><td><b>الوصفي</b></td><td>ماذا حدث؟</td><td>عدد مراجعي مراكز الرعاية الأولية العام الماضي</td><td>الجداول المحورية، لوحات المعلومات</td></tr>
+    <tr><td><b>التشخيصي</b></td><td>لماذا حدث؟</td><td>لماذا ارتفع عدد المراجعين في منطقة بعينها؟</td><td>التعمق (Drill-down)، الارتباط — يقترح أسبابًا محتملة</td></tr>
+    <tr><td><b>التنبؤي</b></td><td>ماذا يُحتمل أن يحدث؟</td><td>كم مراجعًا نتوقع في الشتاء القادم؟</td><td>السلاسل الزمنية، الانحدار، التصنيف</td></tr>
+    <tr><td><b>التوجيهي</b></td><td>ماذا ينبغي أن نفعل؟</td><td>كيف نوزّع الكوادر الطبية لتقليل الانتظار؟</td><td>التحسين، المحاكاة، نماذج القرار</td></tr>
+  </table>
+  <div class="card act">
+    <span class="act-tag">صنّف/ي السؤال</span>
+    <p>كل سؤال من قضية البطالة: إلى أي مستوى ينتمي؟</p>
+    <div class="sorter" id="sortLevels"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkLevels" type="button">تحقق</button><span id="levelsScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="levelsFb">لاحظ/ي سؤال «هل يُرجَّح أن يتأخر المشروع؟»: إجابته نعم/لا لكنه <b>تنبؤي</b> (تصنيف). التنبؤ ليس أرقامًا فقط.</div>
+  </div>
+</section>
+
+<!-- ============ 4 التفسير مقابل التنبؤ + أنواع المهام ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="التفسير مقابل التنبؤ وأنواع المهام">
+  <div class="kicker">المحور الأول</div>
+  <h1>التفسير مقابل التنبؤ</h1>
+  <table>
+    <tr><th></th><th>النموذج التنبؤي</th><th>النموذج التفسيري</th></tr>
+    <tr><td><b>السؤال</b></td><td>كم ستكون البطالة؟</td><td>لماذا ترتفع البطالة؟</td></tr>
+    <tr><td><b>محور العمل</b></td><td>يُقيَّم ببيانات لم يرها</td><td>يبحث في العلاقة السببية</td></tr>
+    <tr><td><b>الاستخدام</b></td><td>يكفي لتجهيز الموارد والمقاعد</td><td>ضروري لتصميم سياسة تغيّر النتيجة</td></tr>
+  </table>
+  <p class="tag-src">Shmueli &amp; Koppius (2011)</p>
+  <div class="card act">
+    <span class="act-tag">أي نموذج يحتاجه القرار؟</span>
+    <div class="sorter" id="sortModel"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkModel" type="button">تحقق</button><span id="modelScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="modelFb">جسر: معرفة أن الربع الثالث يرتفع تكفي لتجهيز دعم موسمي (تنبؤي). أما تغيير النمط نفسه فيحتاج معرفة سببه (تفسيري).</div>
+  </div>
+  <h2>أنواع المهام التنبؤية</h2>
+  <div class="grid3">
+    <div class="card"><h3>السلاسل الزمنية</h3>قيمة مستقبلية من قيم المتغير السابقة. <span class="note">مثال: الطلب على خدمة إلكترونية.</span></div>
+    <div class="card"><h3>الانحدار</h3>قيمة عددية بدلالة متغيرات أخرى. <span class="note">مثال: استهلاك الطاقة بدلالة المساحة وعدد الموظفين والموظفات.</span></div>
+    <div class="card"><h3>التصنيف</h3>فئة ينتمي إليها السجل. <span class="note">مثال: هل يتأخر المشروع؟ (نعم/لا)</span></div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">من جهتك</span>
+    <p>اكتب/ي سؤالًا تنبؤيًّا واحدًا من جهة عملك، ثم أكمل/ي السلسلة: السؤال ← البيانات ومصدرها ← القرار التشغيلي.</p>
+    <div class="grid3">
+      <div><label class="note">السؤال التنبؤي</label><textarea id="myQ"></textarea></div>
+      <div><label class="note">البيانات اللازمة ومصدرها</label><textarea id="myData"></textarea></div>
+      <div><label class="note">القرار التشغيلي</label><textarea id="myDec"></textarea></div>
+    </div>
+    <div class="row" style="margin-top:8px"><label class="note">نوع المهمة:</label>
+      <select id="myType"><option value="">— اختر/ي —</option><option>سلاسل زمنية</option><option>انحدار</option><option>تصنيف</option></select>
+      <button class="btn" id="chkMine" type="button">افحص سؤالي</button></div>
+    <div class="fb" id="mineFb"></div>
+  </div>
+</section>
+
+<!-- ============ 4ب النماذج والفرق بينها ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="ما النموذج؟ والفرق بين النماذج">
+  <div class="kicker">المحور الأول</div>
+  <h1>ما النموذج؟ وما الفرق بين النماذج؟</h1>
+  <p class="lead"><b>النموذج</b> قاعدة نستخرجها من بيانات الماضي، تأخذ مدخلات وتعطي تقديرًا للمستقبل. ليس حقيقة بل أداة، وجودته تُقاس بمدى صحة تقديراته على بيانات لم يرها.</p>
+  <div class="grid2">
+    <div class="card"><h3>تشبيه: الخريطة</h3>خريطة الرياض ليست الرياض؛ تبسيط يحذف تفاصيل كثيرة لكنه يوصلك. والنموذج يحذف السياسات والاقتصاد والتقنية ويحتفظ بالنمط. فإذا تغيّر الطريق نفسه صارت الخريطة القديمة مضلِّلة.</div>
+    <div class="card"><h3>«كل النماذج خاطئة، لكن بعضها مفيد»</h3>عبارة الإحصائي George Box. فالسؤال ليس «هل النموذج صحيح؟» بل «هل هو مفيد لهذا القرار؟ وبكم يخطئ؟».</div>
+  </div>
+  <h2>خمسة نماذج… خمس قواعد</h2>
+  <p class="note">النماذج تختلف في <b>القاعدة</b> التي تحوّل الماضي إلى تقدير، وأهم فرق بينها: <b>كيف تعامل الماضي؟</b> وهل تلتقط <b>الاتجاه</b> و<b>الموسمية</b>؟</p>
+  <table>
+    <tr><th>النموذج</th><th>القاعدة ببساطة</th><th>كيف يعامل الماضي؟</th><th class="num">الاتجاه</th><th class="num">الموسمية</th><th>يناسب حين…</th><th>في Excel</th></tr>
+    <tr><td><b>الساذج</b><br><span class="note">Naïve</span></td><td>القيمة القادمة = آخر قيمة</td><td>آخر قيمة فقط</td><td class="num">✗</td><td class="num">✗</td><td>تتذبذب السلسلة حول مستوى ثابت؛ ويُستخدم <b>معيارًا</b> يجب أن يتفوق عليه أي نموذج</td><td>الإشارة إلى آخر خلية</td></tr>
+    <tr><td><b>الساذج الموسمي</b><br><span class="note">Seasonal naïve</span></td><td>القيمة القادمة = قيمة الفترة نفسها من الدورة السابقة</td><td>آخر دورة كاملة</td><td class="num">✗</td><td class="num">✓</td><td>النمط الموسمي قوي ومستقر</td><td>الإشارة إلى الخلية قبل 4 أرباع</td></tr>
+    <tr><td><b>المتوسط المتحرك</b><br><span class="note">Moving average</span></td><td>متوسط آخر عدد من الفترات</td><td>آخر فترات بأوزان متساوية</td><td class="num">يُظهره</td><td class="num">يزيلها</td><td>نريد <b>وصف</b> الاتجاه وتمهيد التذبذب، لا التنبؤ البعيد</td><td><span dir="ltr">AVERAGE</span></td></tr>
+    <tr><td><b>الاتجاه الخطي</b><br><span class="note">Linear trend</span></td><td>نقطة التقاطع + الميل × الزمن (مسطرة تُمدّ)</td><td>كل الماضي بأوزان متساوية</td><td class="num">✓ ثابت</td><td class="num">✗</td><td>التغير منتظم ونتوقع استمراره، والمدى قصير</td><td><span dir="ltr">FORECAST.LINEAR</span></td></tr>
+    <tr><td><b>التمهيد الأسي</b><br><span class="note">ETS</span></td><td>مستوى + اتجاه + موسمية تتحدّث مع كل فترة جديدة</td><td>الحديث أكبر وزنًا، والوزن يتناقص كلما رجعنا للوراء</td><td class="num">✓ متكيّف</td><td class="num">✓</td><td>الاتجاه والموسمية موجودان ويتغيران</td><td><span dir="ltr">FORECAST.ETS</span> (سطح المكتب)</td></tr>
+  </table>
+  <div class="card act">
+    <span class="act-tag">بيانات واحدة… قواعد مختلفة</span>
+    <p>طبّقنا ثلاثة نماذج على بيانات البطالة نفسها (2021–2025) وتنبأنا بعامَي 2026 و2027. شغّل/ي كل نموذج وقارن/ي:</p>
+    <div class="row">
+      <label class="chip" id="tgMN"><input type="checkbox" hidden> الساذج</label>
+      <label class="chip" id="tgMS"><input type="checkbox" hidden> الساذج الموسمي</label>
+      <label class="chip" id="tgML"><input type="checkbox" hidden> الاتجاه الخطي</label>
+    </div>
+    <svg class="chart" id="chM" viewBox="0 0 900 340"></svg>
+    <div class="legend"><span><i style="background:#5B2A86"></i>الفعلي</span><span><i style="background:#7d7d7d"></i>الساذج</span><span><i style="background:#C9A227"></i>الساذج الموسمي</span><span><i style="background:#2C7FA8"></i>الخطي</span></div>
+    <table id="mTable" style="margin-top:8px"></table>
+    <div class="fb info show">الساذج يرسم خطًّا أفقيًّا (لا شيء سيتغير)، والساذج الموسمي يكرر نمط 2025 (المواسم تتكرر)، والخطي يواصل النزول (الهبوط سيستمر). <b>ثلاث قواعد = ثلاثة افتراضات عن المستقبل</b>. وETS في Excel يعطي رقمًا رابعًا ستراه/ينه في المحور الثاني.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">أي نموذج يناسب الحالة؟</span>
+    <div class="sorter" id="sortFit"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkFit" type="button">تحقق</button><span id="fitScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="fitFb">لا يوجد نموذج «أفضل» دائمًا. النموذج المناسب يتبع شكل البيانات (اتجاه؟ موسمية؟ استقرار؟). ثم نحكم عليه باختباره على بيانات لم يرها، ومقارنته بالساذج؛ وهذا ما نفعله في الشاشة التالية.</div>
+  </div>
+</section>
+
+<!-- ============ 5 مكونات النموذج + MAE + سباق النماذج ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="مكونات النموذج وسباق النماذج">
+  <div class="kicker">المحور الأول</div>
+  <h1>مكونات النموذج التنبؤي</h1>
+  <div class="grid4">
+    <div class="card"><span class="pill">1</span><h3>الهدف والمنبئات</h3>ماذا نقدّر؟ وبماذا؟<br><span class="note">المعدل؛ والمنبئ هنا الزمن فقط.</span></div>
+    <div class="card"><span class="pill">2</span><h3>البيانات التاريخية</h3>هل السجل كافٍ وموثوق؟<br><span class="note">20 ربعًا (2021–2025).</span></div>
+    <div class="card"><span class="pill">3</span><h3>التدريب والاختبار</h3>هل ينجح في بيانات لم يرها؟<br><span class="note">نبني على 2021–2024 ونختبر على 2025.</span></div>
+    <div class="card"><span class="pill">4</span><h3>الدقة وعدم اليقين</h3>بكم يخطئ؟ وما النطاق؟<br><span class="note">MAE ونطاق ثقة 95%.</span></div>
+  </div>
+  <h2>متوسط الخطأ المطلق (MAE)</h2>
+  <p>الفرق بين المتوقع والفعلي لكل فترة ← القيمة المطلقة ← المتوسط. يُقرأ بوحدة المتغير نفسه: «يخطئ النموذج في المتوسط بكذا نقطة مئوية». الأقل أدق.</p>
+  <div class="card act">
+    <span class="act-tag">سباق النماذج</span>
+    <p>درّبنا نموذجين على بيانات <b>2021–2024 فقط</b>، ثم اختبرناهما على <b>2025</b> التي نعرف قيمها الفعلية.</p>
+    <ul>
+      <li><b>الخطي:</b> يمدّ خط اتجاه 2021–2024 المستقيم.</li>
+      <li><b>الساذج:</b> «كل ربع في 2025 = آخر قيمة معروفة (7.0%)»، وهو المعيار الذي عرفناه في الشاشة السابقة.</li>
+    </ul>
+    <p><b>راهن/ي أولًا:</b> أيهما سيخطئ أقل؟</p>
+    <div class="opts" id="raceBet" style="grid-template-columns:1fr 1fr">
+      <button class="opt" data-v="lin" type="button">الخطي</button>
+      <button class="opt" data-v="naive" type="button">الساذج</button>
+    </div>
+    <div id="raceOut" style="display:none">
+      <table id="raceTable"></table>
+      <div class="row" style="margin:8px 0">
+        <label class="chip" id="tgSNaive"><input type="checkbox" hidden> أضف نموذجًا ثالثًا: الساذج الموسمي (الربع نفسه من 2024)</label>
+      </div>
+      <div class="fb ok show" id="raceFb"></div>
+    </div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">لماذا «المطلق»؟</span>
+    <p>أخطاء أربعة أرباع: <span dir="ltr">+0.5، +0.2، −0.4، −0.2</span>. احسب/ي متوسطها <b>بإشاراتها</b>:</p>
+    <div class="row"><input type="number" step="0.01" id="absAns" style="width:120px"><button class="btn" id="absCheck" type="button">تحقق</button></div>
+    <div class="fb" id="absFb"></div>
+  </div>
+</section>
+
+<!-- ============ 6 خط الاتجاه التفاعلي ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="مختبر خط الاتجاه">
+  <div class="kicker">المحور الأول · مختبر</div>
+  <h1>ماذا يمثل الخط؟ وما t؟</h1>
+  <p><b>t</b> عدّاد للأرباع: 1 = ⁦2021-Q1⁩ … 20 = ⁦2025-Q4⁩، و40 = ⁦2030-Q4⁩. و<b>الخط</b> أقرب خط مستقيم إلى كل النقاط معًا (المربعات الصغرى)، وتصفه معادلة: <span dir="ltr">التنبؤ = نقطة التقاطع + الميل × t</span>.</p>
+  <div class="card act">
+    <span class="act-tag">جرّب/ي</span>
+    <div class="grid2">
+      <div>
+        <label>بيانات التدريب حتى: <b id="trainLbl"></b></label>
+        <input type="range" id="trainEnd" min="8" max="20" value="20">
+        <label>الربع المطلوب التنبؤ به (t): <b id="tLbl"></b></label>
+        <input type="range" id="tSel" min="1" max="40" value="40">
+      </div>
+      <div class="grid2">
+        <div class="stat"><b id="slopeV"></b><span>الميل (نقطة/ربع)</span></div>
+        <div class="stat"><b id="intV"></b><span>نقطة التقاطع (t = 0)</span></div>
+        <div class="stat gold" style="grid-column:1/-1"><b id="predV"></b><span id="predCalc"></span></div>
+      </div>
+    </div>
+    <svg class="chart" id="ch2" viewBox="0 0 900 360"></svg>
+    <div class="fb info show" id="labFb"></div>
+  </div>
+  <div class="note">الميل يُقرأ بالنقاط المئوية: −0.29 تعني أن المعدل ينخفض 0.29 <b>نقطة</b> كل ربع، لا 0.29 <b>بالمئة</b>.</div>
+</section>
+
+<!-- ============ 7 حدود التحليلات ============ -->
+<section class="screen" data-axis="المحور الأول: التحليلات التنبؤية" data-title="حدود التحليلات التنبؤية">
+  <div class="kicker">المحور الأول</div>
+  <h1>ما الذي قد يجعل التنبؤ مضلِّلًا؟</h1>
+  <p class="note">اقلب/ي كل بطاقة لترى/ين المعنى وأين ظهر في قضيتنا.</p>
+  <div class="grid3" id="limits"></div>
+  <div class="card act">
+    <span class="act-tag">اختبر/ي فهمك</span>
+    <div id="limQ"></div>
+  </div>
+</section>
+
+<!-- ============ 8 الاستشراف والإشارات ============ -->
+<section class="screen" data-axis="المحور الثاني: استشراف الاتجاهات" data-title="الاستشراف والاتجاهات والإشارات">
+  <div class="kicker">المحور الثاني</div>
+  <h1>مفهوم الاستشراف الاستراتيجي</h1>
+  <div class="quote">ممارسة منهجية لاستكشاف مستقبلات معقولة متعددة، وفحص ما تعنيه لقرارات اليوم. لا تنتج رقمًا واحدًا للمستقبل، ولا تحل محل التنبؤ.</div>
+  <table>
+    <tr><th>المفهوم</th><th>معناه</th><th>مثال</th></tr>
+    <tr><td><b>الاتجاه / الاتجاه الكبير</b></td><td>حركة منتظمة نرصدها عبر فترة، أثرها واسع وممتد</td><td>التحول الرقمي، التركيبة السكانية</td></tr>
+    <tr><td><b>محرك التغيير</b></td><td>قوة تدفع الاتجاه أو تغيّره</td><td>تحول طبيعة المهارات المطلوبة</td></tr>
+    <tr><td><b>الإشارة الضعيفة</b></td><td>ملاحظة مبكرة صغيرة على تغيّر محتمل، تحتاج تثبتًا ومتابعة</td><td>جهة تجرّب وكيل ذكاء اصطناعي للرد على المراجعين</td></tr>
+  </table>
+  <p class="note">تُرصد الإشارات بالمسح الأفقي المنهجي (Horizon Scanning). الإشارة الضعيفة اليوم قد تصبح اتجاهًا كبيرًا غدًا (Government Office for Science, 2024).</p>
+  <div class="card act">
+    <span class="act-tag">اتجاه أم إشارة؟</span>
+    <div class="sorter" id="sortSignals"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkSignals" type="button">تحقق</button><span id="signalsScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="signalsFb">العنصر الأخير يقبل الرأيين. ما الذي يحسم الخلاف؟ <b>بيانات عبر فترة</b>: الاتجاه ثابت بالبيانات، والإشارة لم تثبت بعد.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">ما الذي قد يقلب الصورة؟</span>
+    <p>اكتب/ي عاملًا واحدًا قد يجعل البطالة في 2030 مختلفة تمامًا عمّا تقوله النماذج، ثم صنّفه/يه وفق PESTLE (سياسي، اقتصادي، اجتماعي، تقني، قانوني، بيئي).</p>
+    <div class="row"><input type="text" id="driverTxt" style="flex:1;min-width:220px" placeholder="مثال: تسارع تبنّي الذكاء الاصطناعي">
+      <select id="driverCat"><option>سياسي</option><option>اقتصادي</option><option>اجتماعي</option><option>تقني</option><option>قانوني</option><option>بيئي</option></select>
+      <button class="btn" id="addDriver" type="button">أضف</button></div>
+    <div id="driverList" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ============ 9 مكونات السلسلة + المتوسط المتحرك + الأساليب ============ -->
+<section class="screen" data-axis="المحور الثاني: استشراف الاتجاهات" data-title="مكونات السلسلة وأساليب التنبؤ">
+  <div class="kicker">المحور الثاني</div>
+  <h1>رصد الاتجاهات في البيانات</h1>
+  <p class="lead">قبل أن نستشرف ما قد يتغير، نحتاج أن نعرف أين يتجه الخط الآن. نقرأ الاتجاه بالأرقام ونمدّه، ثم نرى لماذا لا يكفي هذا وحده.</p>
+  <table>
+    <tr><th>المكوّن</th><th>المعنى</th><th>في بيانات البطالة</th></tr>
+    <tr><td><b>الاتجاه العام</b></td><td>زيادة أو نقصان طويل المدى</td><td>الهبوط من 12.2% إلى 7.2% ثم التسطّح منذ 2024</td></tr>
+    <tr><td><b>الموسمية</b></td><td>نمط يتكرر في فترة ثابتة</td><td>الربع الثالث أعلى من الثاني في 4 من 5 سنوات</td></tr>
+    <tr><td><b>الدورية</b></td><td>تقلبات غير ثابتة الطول</td><td>لا تظهر: 5 سنوات أقصر من دورة اقتصادية كاملة</td></tr>
+    <tr><td><b>التذبذب العشوائي</b></td><td>ما يتبقى</td><td>الفرق بين ⁦2025-Q3⁩ (7.5%) و⁦2025-Q4⁩ (7.2%)</td></tr>
+  </table>
+  <p class="tag-src">Hyndman &amp; Athanasopoulos (2021)</p>
+  <div class="card act">
+    <span class="act-tag">المتوسط المتحرك يكشف السر</span>
+    <p>المتوسط المتحرك لأربعة أرباع = متوسط سنة كاملة، فتختفي الموسمية ويظهر الاتجاه. حرّك/ي المؤشر لترى/ين قيمته في كل ربع.</p>
+    <svg class="chart" id="ch3" viewBox="0 0 900 340"></svg>
+    <input type="range" id="maSel" min="4" max="20" value="20">
+    <div class="grid3" style="margin-top:8px">
+      <div class="stat"><b id="maQ"></b><span>الربع</span></div>
+      <div class="stat"><b id="maA"></b><span>الفعلي</span></div>
+      <div class="stat gold"><b id="maV"></b><span>المتوسط المتحرك</span></div>
+    </div>
+    <h3>كم نزل المتوسط كل سنة؟</h3>
+    <table id="maYears"></table>
+    <div class="fb info show">الهبوط يتناقص كل سنة حتى توقف تقريبًا في 2025، بينما يفترض الخطي هبوطًا ثابتًا (نحو 1.18 نقطة سنويًّا). وارتفاع ⁦2025-Q3⁩ فوق المتوسط أغلبه موسمي، لا بداية صعود.</div>
+  </div>
+  <h2>أساليب التنبؤ (مستوى تمهيدي)</h2>
+  <div class="grid2">
+    <div class="card"><h3>المتوسط المتحرك</h3>يمهّد التذبذبات لإبراز الاتجاه؛ للوصف أكثر من التنبؤ البعيد.</div>
+    <div class="card"><h3>الاتجاه الخطي</h3>خط مستقيم يُمدّ إلى المستقبل. في Excel: <span dir="ltr">FORECAST.LINEAR</span>. يفترض استمرار التغير بالمعدل نفسه.</div>
+    <div class="card"><h3>التمهيد الأسي (ETS)</h3><b>E</b>rror – <b>T</b>rend – <b>S</b>easonality. يعطي الحديث وزنًا أكبر. في Excel: <span dir="ltr">FORECAST.ETS</span> وورقة التنبؤ؛ وفي Power BI: خاصية Forecast.</div>
+    <div class="card"><h3>نطاق الثقة</h3>النطاق المتوقع للقيمة الفعلية باحتمال معيّن (مثل 95%). يتسع كلما ابتعدنا لأن عدم اليقين يتراكم.</div>
+  </div>
+</section>
+
+<!-- ============ 10 البيانات واحدة والتنبؤات مختلفة ============ -->
+<section class="screen" data-axis="المحور الثاني: استشراف الاتجاهات" data-title="البيانات واحدة… والتنبؤات مختلفة">
+  <div class="kicker">المحور الثاني</div>
+  <h1>البيانات واحدة… والتنبؤات مختلفة</h1>
+  <div class="card act" id="betCard">
+    <span class="act-tag">رهان</span>
+    <p>شغّلنا أربع طرق تنبؤ على البيانات نفسها. هل ستتفق على نتيجة 2030؟</p>
+    <div class="opts" id="toolBet" style="grid-template-columns:1fr 1fr">
+      <button class="opt" data-v="yes" type="button">نعم، ستكون متقاربة</button>
+      <button class="opt" data-v="no" type="button">لا، ستختلف كثيرًا</button>
+    </div>
+  </div>
+  <div id="toolsOut" style="display:none">
+    <div class="card">
+      <svg class="chart" id="ch4" viewBox="0 0 900 380"></svg>
+      <div class="row" style="margin-top:6px">
+        <label class="chip" id="tgCI"><input type="checkbox" hidden> أظهر نطاق الثقة 95% (Power BI موسمية = 4)</label>
+      </div>
+      <p class="tag-src">الأرقام من تنفيذ النشاط في Excel 365 وPower BI Desktop (أكتوبر 2026)، وقد تختلف قليلًا باختلاف الإصدار.</p>
+    </div>
+    <table>
+      <tr><th>الأداة والإعداد</th><th class="num">نهاية 2030</th><th>يبلغ 5%؟</th><th>لماذا؟</th></tr>
+      <tr><td>Excel — الإسقاط الخطي</td><td class="num">0.2%</td><td>نعم، ⁦2026-Q4⁩</td><td>المسطرة تبدأ من 6.0% لا 7.2%، وتفترض هبوطًا ثابتًا</td></tr>
+      <tr><td>Power BI — موسمية تلقائية</td><td class="num">~1%</td><td>نعم</td><td>يمدّ الهبوط دون حدّ أدنى</td></tr>
+      <tr><td>Excel — FORECAST.ETS</td><td class="num">1.3%</td><td>نعم، ⁦2027-Q4⁩</td><td>يمدّ الهبوط دون حدّ أدنى</td></tr>
+      <tr><td>Power BI — موسمية = 4</td><td class="num">~10%</td><td>لا</td><td>عدّ ارتفاع 2025 بداية صعود، والنطاق من −4% إلى 23%</td></tr>
+    </table>
+    <div class="fb info show" id="betFb"></div>
+    <div class="card act">
+      <span class="act-tag">عين ناقدة</span>
+      <p>انظر/ي إلى بداية خط الإسقاط الخطي في الشكل. ما الغريب فيه؟</p>
+      <div class="opts" id="oddQ">
+        <button class="opt" data-ok="0" type="button">يبدأ من آخر قيمة فعلية 7.2% تمامًا</button>
+        <button class="opt" data-ok="1" type="button">يبدأ نحو 6.0%، أي أدنى من آخر قيمة فعلية بنحو 1.2 نقطة</button>
+        <button class="opt" data-ok="0" type="button">يبدأ فوق المستهدف بقليل لأنه موسمي</button>
+      </div>
+      <div class="fb" id="oddFb"></div>
+    </div>
+  </div>
+  <h2>الدرس المستفاد</h2>
+  <div class="grid3">
+    <div class="card"><h3>لا رقم وحده</h3>الرقم المتوقع + نطاق الثقة + الطريقة + الافتراضات.</div>
+    <div class="card"><h3>الحكم المهني هو الفيصل</h3>النماذج لا تعرف حدود الواقع؛ القرار يراجع منطقية الرقم قبل اعتماده.</div>
+    <div class="card"><h3>نحتاج السيناريوهات</h3>حين يتسع عدم اليقين من −4% إلى 23% لا يكفي التنبؤ وحده.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">اكتب/ي «رقمًا مسؤولًا»</span>
+    <p>أكمل/ي الجملة لصانع/ة القرار عن نهاية 2027 (أفق أقرب أصلح للتنبؤ). مثال للخطي من ملف النشاط: 3.7%.</p>
+    <div class="grid4">
+      <div><label class="note">الرقم %</label><input type="number" step="0.1" id="rn1" style="width:100%"></div>
+      <div><label class="note">الحد الأدنى %</label><input type="number" step="0.1" id="rn2" style="width:100%"></div>
+      <div><label class="note">الحد الأعلى %</label><input type="number" step="0.1" id="rn3" style="width:100%"></div>
+      <div><label class="note">الطريقة</label><select id="rn4" style="width:100%"><option>التمهيد الأسي (ETS)</option><option>الاتجاه الخطي</option><option>Power BI Forecast</option></select></div>
+    </div>
+    <label class="note">الافتراض الأهم</label><input type="text" id="rn5" style="width:100%" placeholder="مثال: استمرار سياسات التوطين الحالية">
+    <div class="row" style="margin-top:8px"><button class="btn" id="rnBuild" type="button">كوّن الجملة</button></div>
+    <div class="memo" id="rnOut" style="display:none;margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ============ 11 التنبؤ مقابل الاستشراف + نشاط 2 ============ -->
+<section class="screen" data-axis="المحور الثاني: استشراف الاتجاهات" data-title="التنبؤ مقابل الاستشراف ونشاط 2">
+  <div class="kicker">المحور الثاني</div>
+  <h1>الاستشراف لا يتنبأ بالمستقبل</h1>
+  <div class="quote">الأداتان متكاملتان: يقدّم التنبؤ «خط الأساس» الكمي، ويختبر الاستشراف ما قد يجعل هذا الخط يتغير.</div>
+  <table>
+    <tr><th>وجه المقارنة</th><th>التنبؤ</th><th>الاستشراف</th></tr>
+    <tr><td>السؤال</td><td>ما القيمة الأكثر احتمالًا؟</td><td>ما المستقبلات الممكنة والمعقولة؟</td></tr>
+    <tr><td>الافتراض</td><td>استمرار أنماط الماضي</td><td>احتمال تغيّر قواعد اللعبة</td></tr>
+    <tr><td>المدى</td><td>قصير إلى متوسط</td><td>متوسط إلى طويل</td></tr>
+    <tr><td>المخرج</td><td>رقم + نطاق ثقة</td><td>مجموعة سيناريوهات وسرديات</td></tr>
+    <tr><td>الأدوات</td><td>السلاسل الزمنية، الانحدار، تعلّم الآلة</td><td>المسح الأفقي، خرائط المحركات، السيناريوهات</td></tr>
+    <tr><td>الاستخدام الأمثل</td><td>التشغيل والميزانية والموارد</td><td>الاستراتيجية والسياسات والمخاطر</td></tr>
+  </table>
+  <p class="tag-src">Government Office for Science (2024)؛ OECD (2019)</p>
+  <div class="card" id="ticketBack" style="display:none"><b>بطاقة دخولك:</b> <span id="ticketEcho"></span><br><span class="note">قارن/ي إجابتك بالجدول أعلاه. ما الذي تغيّر في فهمك؟</span></div>
+  <div class="card">
+    <h3>أدوات الاستشراف</h3>
+    <div class="grid4">
+      <div class="stat"><b>1</b><span>المسح الأفقي وخريطة المحركات: ما الذي يتغير؟</span></div>
+      <div class="stat"><b>2</b><span>السيناريوهات وبناء الرؤية: ما معناه لنا؟</span></div>
+      <div class="stat"><b>3</b><span>اختبار السياسات والاستشراف العكسي: ماذا نفعل؟</span></div>
+      <div class="stat"><b>4</b><span>مؤشرات الإنذار المبكر: المتابعة</span></div>
+    </div>
+    <p style="margin-top:10px">خريطة المحركات: تُحصر قوى التغيير وفق PESTLE (سياسي، اقتصادي، اجتماعي، تقني، قانوني، بيئي)، ثم تُرتَّب حسب الأثر وعدم اليقين. عالية الأثر وقليلة عدم اليقين ← اتجاهات شبه مؤكدة تدخل التخطيط مباشرة. عالية الأثر وعالية عدم اليقين ← محاور للسيناريوهات.</p>
+  </div>
+  <div class="card act">
+    <span class="act-tag">نشاط المحاضرة 2</span>
+    <p class="note">اكتب/ي إجابتك أولًا، ثم اكشف/ي الإجابة النموذجية وقارن/ي.</p>
+    <div id="act2"></div>
+  </div>
+</section>
+
+<!-- ============ 12أ ما السيناريوهات ============ -->
+<section class="screen" data-axis="المحور الثالث: السيناريوهات المستقبلية" data-title="ما السيناريوهات؟ ولماذا نحتاجها؟">
+  <div class="kicker">المحور الثالث</div>
+  <h1>من «ماذا سيحدث؟» إلى «ماذا لو…؟ وهل نحن مستعدون؟»</h1>
+  <p class="lead">رأينا في المحور الثاني أن نطاق التنبؤ لعام 2030 اتسع من −4% إلى 23%. حين يصل عدم اليقين إلى هذا الحد، لا نحاول تخمين رقم واحد، بل نفكر في <b>عدة مستقبلات معقولة</b> ونستعد لها جميعًا. هذه هي السيناريوهات.</p>
+  <div class="grid2">
+    <div class="card"><h3>ما هي؟</h3>سرديات (قصص) متماسكة عن مستقبلات بديلة <b>معقولة</b>: ممكنة منطقيًّا، لا خيالًا (Schoemaker, 1995).</div>
+    <div class="card"><h3>ليست خططًا ولا تنبؤات</h3>لا تقول ماذا <b>سنفعل</b> (فليست خطة)، ولا ماذا <b>سيحدث</b> (فليست تنبؤًا)، ولا تُرتَّب حسب الاحتمال. هي أدوات للتفكير والاستعداد.</div>
+    <div class="card"><h3>ما تعالجه</h3>الإفراط في الثقة بمستقبل واحد، وضيق الرؤية: أن نستعد لما نتوقعه فقط فنُفاجأ بغيره.</div>
+    <div class="card"><h3>ما تغيّره</h3>السؤال نفسه: من «ماذا سيحدث؟» إلى «ماذا لو حدث كذا؟ وهل قراراتنا تصمد؟».</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">مثال من الحياة: حفل تخرج في الهواء الطلق</span>
+    <p>لا نعرف الطقس ولا عدد الحضور. بدل أن نخمّن موقفًا واحدًا، نرسم أربعة مواقف ونستعد لها. انقر/ي كل مربع:</p>
+    <div class="matrix">
+      <div class="ax v">حضور أكثر من المتوقع ↑</div>
+      <button type="button" class="quad q1 partyq" data-t="نحتاج مظلات ومراوح إضافية، ومقاعد احتياطية، ومياهًا أكثر.">طقس حار + حضور كبير</button>
+      <button type="button" class="quad q2 partyq" data-t="أفضل الحالات: نجهّز مقاعد احتياطية ونوسّع منطقة الوقوف.">طقس معتدل + حضور كبير</button>
+      <div class="ax v">حضور أقل ↓</div>
+      <button type="button" class="quad q3 partyq" data-t="مظلات ومراوح، مع تقليص المساحة حتى لا تبدو القاعة فارغة.">طقس حار + حضور قليل</button>
+      <button type="button" class="quad q4 partyq" data-t="الترتيب الأساسي يكفي؛ نخفف الطلبيات الإضافية.">طقس معتدل + حضور قليل</button>
+      <div></div><div class="ax">طقس حار</div><div class="ax">طقس معتدل</div>
+    </div>
+    <div class="fb info" id="partyFb"></div>
+    <div class="fb ok" id="partyLesson">لاحظ/ي: <b>المقاعد الاحتياطية</b> تفيد في مربعين، و<b>المظلات</b> في مربعين. هذه «قرارات مرنة». والسيناريوهات في السياسات العامة تعمل بالطريقة نفسها: محوران غير مؤكدين ← أربعة مستقبلات ← قرارات تصمد في أكثرها.</div>
+  </div>
+  <h2>نوعا السيناريوهات</h2>
+  <div class="grid2">
+    <div class="card"><h3>الاستكشافية (Exploratory)</h3>تنطلق من <b>الحاضر</b> وتسأل: ما الذي قد يحدث؟ مثالها مصفوفة سوق العمل 2030 التي سنبنيها.</div>
+    <div class="card"><h3>المعيارية (Normative)</h3>تنطلق من <b>مستقبل مرغوب</b> (مثل 5%) وتعود إلى الحاضر: ما الذي يجب أن يحدث لنصل؟ وتُسمى <b>الاستشراف العكسي (Backcasting)</b>، وتساعد على تجاوز «تحيّز الحاضر».</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">جرّب/ي الاستشراف العكسي</span>
+    <p>نبدأ من المستهدف ونعود للخلف: لنصل من <b>7.2%</b> (2025) إلى <b>5%</b> (2030)، كم نقطة يجب أن ينخفض المعدل في السنة؟</p>
+    <div class="row"><input type="number" step="0.01" id="bcAns" style="width:120px"><span>نقطة سنويًّا</span><button class="btn" id="bcCheck" type="button">تحقق</button></div>
+    <div class="fb" id="bcFb"></div>
+    <div id="bcQ" style="display:none;margin-top:10px">
+      <p><b>والآن قارن/ي:</b> المتوسط المتحرك هبط في السنوات الأخيرة: <span dir="ltr">2.13 ← 1.24 ← 1.05 ← 0.43</span> نقطة. هل الوتيرة الحالية كافية؟</p>
+      <div class="opts" id="bcO">
+        <button class="opt" data-ok="0" type="button">نعم بسهولة، فالمعدل ينخفض منذ 2021</button>
+        <button class="opt" data-ok="1" type="button">بالكاد: المطلوب يساوي تقريبًا هبوط السنة الأخيرة، والهبوط يتناقص كل سنة</button>
+        <button class="opt" data-ok="0" type="button">لا يمكن معرفة ذلك من البيانات</button>
+      </div>
+      <div class="fb" id="bcOFb"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12ب خريطة المحركات ============ -->
+<section class="screen" data-axis="المحور الثالث: السيناريوهات المستقبلية" data-title="خريطة المحركات واختيار المحورين">
+  <div class="kicker">المحور الثالث</div>
+  <h1>من أين يأتي محورا المصفوفة؟</h1>
+  <p class="lead">لا نختار المحورين عشوائيًّا. نحصر قوى التغيير المؤثرة في القضية (PESTLE)، ثم نقيّم كل قوة على سؤالين: <b>ما حجم أثرها؟</b> و<b>ما درجة عدم اليقين في اتجاهها؟</b></p>
+  <div class="card">
+    <h3>إطار <span dir="ltr">PESTLE</span>: ستة مجالات لحصر قوى التغيير</h3>
+    <p>اختصار لستة مجالات نحصر بها قوى التغيير، وهو <b>قائمة تذكير</b> تمنع ضيق الرؤية: من يفكر في البطالة يبدأ عادة بالاقتصاد وحده، وPESTLE يجعله يمر بالمجالات الستة كلها فلا تفوته قوة مهمة.</p>
+    <table>
+      <tr><th class="num">الحرف</th><th>المجال</th><th>مثال من قضية البطالة</th></tr>
+      <tr><td class="num"><b>P</b> · Political</td><td>سياسي</td><td>سياسات التوطين وبرامج الدعم</td></tr>
+      <tr><td class="num"><b>E</b> · Economic</td><td>اقتصادي</td><td>أسعار النفط والنمو الاقتصادي</td></tr>
+      <tr><td class="num"><b>S</b> · Social</td><td>اجتماعي</td><td>نمو الفئة الشابة، ومشاركة المرأة في سوق العمل</td></tr>
+      <tr><td class="num"><b>T</b> · Technological</td><td>تقني</td><td>تسارع تبنّي الذكاء الاصطناعي والأتمتة</td></tr>
+      <tr><td class="num"><b>L</b> · Legal</td><td>قانوني</td><td>تعديلات نظام العمل، ونظام حماية البيانات الشخصية</td></tr>
+      <tr><td class="num"><b>E</b> · Environmental</td><td>بيئي</td><td>التحول نحو الطاقة المتجددة وما يولّده من وظائف جديدة</td></tr>
+    </table>
+    <div class="quote">قبل أن نتخيل المستقبل نسأل ست مرات: ما الذي قد يتغير سياسيًّا؟ اقتصاديًّا؟ اجتماعيًّا؟ تقنيًّا؟ قانونيًّا؟ بيئيًّا؟</div>
+    <p class="note">الخطوتان: (1) نحصر القوى بحسب المجالات الستة، (2) نرتّبها حسب الأثر وعدم اليقين كما في المربعات الأربعة التالية.</p>
+  </div>
+  <div class="grid2">
+    <div class="card" style="border-color:#2E7D5B"><h3>أثر عالٍ + عدم يقين عالٍ</h3><b>محاور السيناريوهات.</b> مهمة جدًّا ولا نعرف إلى أين تتجه، فنبني عليها المستقبلات البديلة.</div>
+    <div class="card" style="border-color:#5B2A86"><h3>أثر عالٍ + عدم يقين منخفض</h3><b>اتجاهات شبه مؤكدة.</b> تدخل كل السيناريوهات وتدخل التخطيط مباشرة.</div>
+    <div class="card"><h3>أثر منخفض + عدم يقين عالٍ</h3><b>نراقبها.</b> قد تكون إشارات ضعيفة تكبر لاحقًا.</div>
+    <div class="card"><h3>أثر منخفض + عدم يقين منخفض</h3><b>خلفية.</b> لا تغيّر الصورة كثيرًا.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">قيّم/ي المحركات</span>
+    <p class="note">لكل قوة: اختر/ي حجم الأثر ودرجة عدم اليقين، ثم تحقق/ي لتظهر على الخريطة.</p>
+    <div id="drvBox"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="drvCheck" type="button">تحقق وارسم الخريطة</button><span class="pill" id="drvScore" style="display:none"></span></div>
+    <svg class="chart" id="drvMap" viewBox="0 0 900 420" style="display:none;margin-top:12px"></svg>
+    <div class="fb info" id="drvFb">قوتان في المربع الأخضر صالحتان لمحوري المصفوفة: <b>سرعة تبنّي الذكاء الاصطناعي</b> و<b>مواءمة التعليم والتدريب مع السوق</b>. وأسعار النفط والنمو الاقتصادي في المربع نفسه؛ فلماذا لم نخترها؟ لأن السيناريوهات تختار المحورين <b>الأكثر صلة بسؤال القرار</b>: سؤالنا عن المهارات والوظائف. ويمكن لفريق آخر بسؤال مالي أن يختار النفط محورًا. أما <b>نمو الفئة الشابة</b> فاتجاه شبه مؤكد يدخل كل السيناريوهات.</div>
+  </div>
+</section>
+
+<!-- ============ 12ج الخطوات الثمان ============ -->
+<section class="screen" data-axis="المحور الثالث: السيناريوهات المستقبلية" data-title="ثماني خطوات لبناء السيناريوهات">
+  <div class="kicker">المحور الثالث</div>
+  <h1>ثماني خطوات لبناء السيناريوهات</h1>
+  <p class="lead">استنادًا إلى Schoemaker (1995) وGovernment Office for Science (2024). انقر/ي كل خطوة لترى/ين معناها وكيف طبقناها على قضية البطالة.</p>
+  <div class="row" id="stepBtns" style="gap:6px"></div>
+  <div class="card" id="stepPanel" style="min-height:220px"></div>
+  <div class="note">الخطوات 1–4 «نفهم القضية»، و5–6 «نبني المستقبلات»، و7–8 «من المستقبلات إلى القرار».</div>
+</section>
+
+<!-- ============ 12د المصفوفة ============ -->
+<section class="screen" data-axis="المحور الثالث: السيناريوهات المستقبلية" data-title="نشاط 3: مصفوفة سوق العمل 2030">
+  <div class="kicker">نشاط المحاضرة 3</div>
+  <h1>مصفوفة سيناريوهات سوق العمل 2030</h1>
+  <p><b>المحور الأفقي:</b> سرعة تبنّي الذكاء الاصطناعي والأتمتة في بيئات العمل. <b>المحور الرأسي:</b> مواءمة مخرجات التعليم والتدريب مع احتياجات سوق العمل. كل محور له طرفان، فتنتج <b>أربعة</b> مستقبلات.</p>
+  <div class="card act">
+    <span class="act-tag">أين يقف موظف/ة إدخال البيانات؟</span>
+    <p>قبل الأرقام، نفهم كل سيناريو بقصة إنسانية. طابق/ي مصير الموظف/ة مع السيناريو:</p>
+    <div class="sorter" id="sortFate"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkFate" type="button">تحقق</button><span id="fateScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="fateFb">هذا معنى «السردية المتسقة»: كل سيناريو قصة منطقية من أولها لآخرها، لا مجرد رقم.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">ابنِ/ابني المصفوفة بالأرقام</span>
+    <p><b>1) اختر/ي خط الأساس لعام 2030</b>: النقطة التي نضيف إليها أثر كل سيناريو. أي «لو بقيت العوامل الأخرى كما هي».</p>
+    <div class="opts" id="baseOpts" style="grid-template-columns:repeat(4,1fr)">
+      <button class="opt sel" data-v="7.2" type="button">آخر معدل فعلي 7.2%</button>
+      <button class="opt" data-v="1.3" type="button">تنبؤ Excel ETS ‏1.3%</button>
+      <button class="opt" data-v="0.2" type="button">التنبؤ الخطي 0.2%</button>
+      <button class="opt" data-v="10" type="button">Power BI (موسمية 4) ‏10%</button>
+    </div>
+    <div class="fb" id="baseFb"></div>
+    <p style="margin-top:12px"><b>2) قدّر/ي أثر كل سيناريو بالنقاط المئوية</b> بالمؤشر داخل كل مربع. موجب = يرفع البطالة، سالب = يخفضها. القيم الافتراضية تعليمية، فعدّلها/يها وبرّرها/يها.</p>
+    <div class="matrix">
+      <div class="ax v">مواءمة عالية ↑</div>
+      <div class="quad q1" id="qd0"></div>
+      <div class="quad q2" id="qd2"></div>
+      <div class="ax v">مواءمة منخفضة ↓</div>
+      <div class="quad q3" id="qd1"></div>
+      <div class="quad q4" id="qd3"></div>
+      <div></div>
+      <div class="ax">تبنٍّ سريع للذكاء الاصطناعي</div>
+      <div class="ax">تبنٍّ بطيء للذكاء الاصطناعي</div>
+    </div>
+    <div class="fb info show" id="scenFb"></div>
+  </div>
+</section>
+
+<!-- ============ 12هـ الإنذار المبكر والقرار ============ -->
+<section class="screen" data-axis="المحور الثالث: السيناريوهات المستقبلية" data-title="مؤشرات الإنذار المبكر والقرار المرن">
+  <div class="kicker">المحور الثالث</div>
+  <h1>كيف نعرف مبكرًا أي سيناريو يقترب؟</h1>
+  <p class="lead">لا ننتظر 2030 لنعرف أي مستقبل تحقق. نحدد لكل سيناريو <b>مؤشرات إنذار مبكر</b>: بيانات تُرصد دوريًّا، إذا تحركت في اتجاه معيّن عرفنا أي سيناريو يقترب.</p>
+  <table>
+    <tr><th>السيناريو</th><th>مؤشرات إنذار مبكر</th><th>دلالة للقرار</th></tr>
+    <tr><td><b>قفزة المهارات</b></td><td>ارتفاع الشهادات المهنية الرقمية؛ نمو الوظائف التقنية للمواطنين والمواطنات</td><td>التوسع في الشراكات مع القطاع الخاص</td></tr>
+    <tr><td><b>فجوة الأتمتة</b></td><td>تراجع التوظيف في الوظائف الإدارية الروتينية؛ ارتفاع البطالة بين حملة الشهادات الجامعية</td><td>برامج عاجلة لإعادة التأهيل وشبكات حماية</td></tr>
+    <tr><td><b>النمو المتدرّج</b></td><td>استقرار معدلات التوظيف؛ بطء نمو الاستثمار التقني</td><td>تحفيز تبنّي التقنية مع الحفاظ على جودة التدريب</td></tr>
+    <tr><td><b>الركود الهيكلي</b></td><td>ارتفاع البطالة طويلة الأمد؛ ضعف الإقبال على برامج التدريب</td><td>مراجعة جذرية للمواءمة بين التعليم والسوق</td></tr>
+  </table>
+  <div class="card act">
+    <span class="act-tag">مؤشر الإنذار المبكر: جيد أم ضعيف؟</span>
+    <p class="note">المؤشر الجيد <b>قابل للقياس</b> و<b>متاح من مصدر</b> (الهيئة العامة للإحصاء، التأمينات الاجتماعية…).</p>
+    <div class="sorter" id="sortInd"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkInd" type="button">تحقق</button><span id="indScore" class="pill" style="display:none"></span></div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">سؤال القرار</span>
+    <p>بناءً على المصفوفة: أي سيناريو يستدعي أكبر قدر من الاستعداد؟</p>
+    <div class="opts" id="prepQ">
+      <button class="opt" data-ok="0" type="button">قفزة المهارات، لأنه الأقرب إلى المستهدف</button>
+      <button class="opt" data-ok="1" type="button">فجوة الأتمتة، لأنه الأعلى أثرًا سلبيًّا وتسارع تبنّي الذكاء الاصطناعي واقع ملموس</button>
+      <button class="opt" data-ok="0" type="button">الأكثر احتمالًا منها، لأن السيناريوهات تُرتَّب بالاحتمال</button>
+    </div>
+    <div class="fb" id="prepFb"></div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">القرار المرن</span>
+    <p>الهدف ليس اختيار سيناريو «نراهن» عليه، بل قرارات تصمد في أكثر من مستقبل. صنّف/ي كل قرار:</p>
+    <div class="sorter" id="sortRobust"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkRobust" type="button">تحقق</button><span id="robustScore" class="pill" style="display:none"></span></div>
+    <div class="fb info" id="robustFb">القرار المرن (إعادة التأهيل) هو ما سنحوّله في المحور الرابع إلى توصية: ماذا، ومن، ومتى، وما المؤشر والعتبة.</div>
+  </div>
+</section>
+
+<!-- ============ 13 من البيانات إلى الخطة ============ -->
+<section class="screen" data-axis="المحور الرابع: البيانات في التخطيط" data-title="من البيانات إلى الخطة">
+  <div class="kicker">المحور الرابع</div>
+  <h1>من البيانات إلى الخطة في سبع خطوات</h1>
+  <p>يحدد إطار منظمة التعاون الاقتصادي والتنمية للقطاع العام القائم على البيانات ثلاثة مجالات: <b>الاستشراف والتخطيط</b>، والتنفيذ، والتقييم والمتابعة (van Ooijen et al., 2019). نركز على الأول.</p>
+  <div class="card act">
+    <span class="act-tag">رتّب/ي الخطوات</span>
+    <p class="note">استخدم/ي الأسهم لترتيب الخطوات السبع، ثم تحقق/ي.</p>
+    <div class="steps-order" id="stepsOrder"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkSteps" type="button">تحقق</button><button class="btn ghost" id="showSteps" type="button">أظهر الترتيب والأسئلة الموجّهة</button></div>
+    <div class="fb" id="stepsFb"></div>
+  </div>
+  <div class="card">
+    <h3>دراسة حالة: مراجعة مستهدف البطالة في رؤية 2030</h3>
+    <div class="grid3">
+      <div class="stat"><b>7%</b><span>المستهدف الأصلي</span></div>
+      <div class="stat"><b>~7%</b><span>2024: تحقق مبكرًا</span></div>
+      <div class="stat gold"><b>5%</b><span>المستهدف الجديد (ملتقى ميزانية 2025)</span></div>
+    </div>
+    <p style="margin-top:10px"><b>الدرس:</b> المستهدفات ليست ثابتة، والمتابعة الدورية للبيانات (الخطوة 7) هي التي سمحت بإعادة المعايرة. وبأخذ 7.2% خطَّ أساس، لا يتجاوز أفضل السيناريوهات 6.2%؛ فقد يتطلب بلوغ 5% تدخلات إضافية مقصودة. <i>فرضية للنقاش لا حكم نهائي.</i></p>
+    <p class="tag-src">Argaam (2024, November 27). New unemployment target set at 5% by 2030: Minister.</p>
+  </div>
+</section>
+
+<!-- ============ 14 التحيزات ============ -->
+<section class="screen" data-axis="المحور الرابع: البيانات في التخطيط" data-title="التحيزات المعرفية">
+  <div class="kicker">المحور الرابع</div>
+  <h1>التحيّزات المعرفية في قراءة التنبؤات</h1>
+  <p>القرار المبني على الأدلة لا يتحقق بمجرد توافر البيانات؛ فالتحيّزات قد تشوّه طريقة قراءتها (Banasiewicz, 2019).</p>
+  <table>
+    <tr><th>التحيّز</th><th>كيف يظهر؟</th><th>كيف نحدّ منه؟</th></tr>
+    <tr><td><b>الإفراط في الثقة</b></td><td>التعامل مع الرقم المتوقع كأنه حقيقة</td><td>عرض نطاق الثقة دائمًا</td></tr>
+    <tr><td><b>الإرساء</b></td><td>التمسك بأول رقم ظهر (كالتنبؤ الخطي)</td><td>مقارنة أكثر من نموذج</td></tr>
+    <tr><td><b>التأكيد</b></td><td>اختيار النموذج الذي يوافق ما نريده</td><td>تحديد معيار الاختيار قبل رؤية النتائج</td></tr>
+    <tr><td><b>تحيّز الحاضر</b></td><td>افتراض أن المستقبل نسخة من اليوم</td><td>السيناريوهات والاستشراف العكسي</td></tr>
+  </table>
+  <div class="card act">
+    <span class="act-tag">شخّص/ي التحيّز</span>
+    <div class="sorter" id="sortBias"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="chkBias" type="button">تحقق</button><span id="biasScore" class="pill" style="display:none"></span></div>
+  </div>
+  <h2>عرض التنبؤ وأخلاقياته</h2>
+  <div class="grid2">
+    <div class="card"><h3>عرض التنبؤ لصانع/ة القرار</h3>
+      <ul><li>خط متصل للفعلي، ومتقطع أو بلون مختلف للمتوقع.</li><li>نطاق الثقة مظلَّل لا مُخفى.</li><li>سطر أسفل الشكل: أي نموذج؟ أي فترة بيانات؟</li><li>ختم بالرسالة القرارية: ماذا يعني؟ وماذا نوصي؟</li></ul>
+      <span class="tag-src">Knaflic (2015)</span></div>
+    <div class="card"><h3>الأخلاقيات</h3>
+      <ul><li><b>الشفافية:</b> أن يفهم المتأثرون والمتأثرات كيف بُني التنبؤ.</li><li><b>النزاهة والإنصاف:</b> فحص ما إذا كان النموذج يعطي نتائج أسوأ لفئة بعينها.</li><li><b>الخصوصية:</b> البيانات المجمّعة لا الفردية متى كفت (نظام حماية البيانات الشخصية).</li><li><b>المساءلة:</b> القرار مسؤولية بشرية.</li></ul>
+      <span class="tag-src">الهيئة السعودية للبيانات والذكاء الاصطناعي (2023)، مبادئ أخلاقيات الذكاء الاصطناعي</span></div>
+  </div>
+</section>
+
+<!-- ============ 15 نشاط 4 التوصية ============ -->
+<section class="screen" data-axis="المحور الرابع: البيانات في التخطيط" data-title="نشاط 4: صياغة التوصية">
+  <div class="kicker">نشاط المحاضرة 4</div>
+  <h1>صياغة توصية مبنية على الأدلة</h1>
+  <table>
+    <tr><th style="width:24%">القضية</th><td>هل يكفي المسار الحالي لبلوغ 5% بين السعوديين والسعوديات بحلول 2030؟ أم نحتاج تدخلات إضافية؟</td></tr>
+    <tr><th>ما تقوله البيانات</th><td>انخفاض من 12.2% (2021) إلى 7.2% (2025)، مع تباطؤ منذ 2024 وارتفاع في 2025 من 6.3% إلى 7.5%.</td></tr>
+    <tr><th>مدى اليقين</th><td>النماذج متضاربة (من نحو 1% إلى نحو 10%). السلسلة قصيرة (20 ربعًا) ودون عوامل اقتصادية؛ تنبؤ 2030 لا يصلح وحده أساسًا للقرار.</td></tr>
+    <tr><th>السيناريو الأحق بالاستعداد</th><td>«فجوة الأتمتة» (8.7%). ولا يبلغ المستهدف أي سيناريو.</td></tr>
+  </table>
+  <div class="card act">
+    <span class="act-tag">مُنشئ المذكرة</span>
+    <div class="grid2">
+      <div><label class="note">ماذا؟ (إجراء محدد)</label><textarea id="r_what" placeholder="مثال: برنامج لإعادة تأهيل…"></textarea></div>
+      <div><label class="note">مَن؟ (الجهة المسؤولة)</label><textarea id="r_who"></textarea></div>
+      <div><label class="note">متى؟ (الإطار الزمني)</label><textarea id="r_when"></textarea></div>
+      <div><label class="note">مؤشر المتابعة (ومصدره)</label><textarea id="r_ind"></textarea></div>
+      <div><label class="note">عتبة إعادة النظر</label><textarea id="r_thr"></textarea></div>
+      <div><label class="note">اعتبار أخلاقي أو جودة بيانات</label><textarea id="r_eth"></textarea></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="memoBuild" type="button">افحص وكوّن المذكرة</button><button class="btn ghost" id="memoCopy" type="button">انسخ المذكرة</button><button class="btn ghost" id="memoModel" type="button">أظهر الإجابة النموذجية</button></div>
+    <div id="memoChecks" style="margin-top:10px"></div>
+    <div class="memo" id="memoOut" style="display:none;margin-top:10px"></div>
+    <div class="fb info" id="memoModelFb"><b>التوصية:</b> برنامج لإعادة تأهيل الموظفين والموظفات في الوظائف الإدارية المعرّضة للأتمتة على المهارات الرقمية والتحليلية. <b>المسؤول:</b> الجهة المعنية بالتدريب التقني والمهني بالتنسيق مع وزارة الموارد البشرية والتنمية الاجتماعية. <b>الإطار الزمني:</b> تجريبي 2026، توسع 2027.<br><b>المؤشر والعتبة:</b> معدل البطالة بين حملة البكالوريوس (ربعي، الهيئة العامة للإحصاء)؛ إعادة النظر إذا ارتفع ربعين متتاليين.<br><b>الاعتبار الأخلاقي:</b> البيانات المجمّعة مناسبة للتخطيط؛ التنبؤ على مستوى الأفراد يمس الخصوصية وقد يوصم فئات بعينها؛ التحقق من ثبات منهجية مسح القوى العاملة عبر السنوات.</div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>توصية ضعيفة</h3>«يجب الاهتمام بالتدريب» · «البطالة ستنخفض إلى 1.3%» · بلا مؤشر متابعة</div>
+    <div class="card"><h3>توصية قوية</h3>إجراء محدد + جهة + موعد · «النماذج متضاربة، لذلك نستعد للسيناريو الأخطر» · مؤشر + عتبة</div>
+  </div>
+</section>
+
+<!-- ============ 16 الخلاصة والاختبار ============ -->
+<section class="screen" data-axis="الختام" data-title="الخلاصة والاختبار الختامي">
+  <div class="kicker">الختام</div>
+  <h1>ثلاث أفكار تبقى معنا</h1>
+  <div class="grid3">
+    <div class="card"><h3>التنبؤ تقدير احتمالي</h3>يُقدَّم رقمًا ونطاقًا وطريقة وافتراضات، لا رقمًا وحيدًا.</div>
+    <div class="card"><h3>التنبؤ والاستشراف متكاملان</h3>خط أساس كمي، تضاف إليه سيناريوهات تختبر ما قد يغيّره.</div>
+    <div class="card"><h3>حين لا تحسم البيانات المستقبل</h3>نختار قرارًا مرنًا ونراقب مؤشرًا يخبرنا متى نغيّره.</div>
+  </div>
+  <div class="card act">
+    <span class="act-tag">الاختبار الختامي</span>
+    <p class="note">10 أسئلة · درجة النجاح 70%.</p>
+    <div id="quiz"></div>
+    <div class="row" style="margin-top:12px"><button class="btn gold" id="quizSubmit" type="button">سلّم/ي الإجابات</button><button class="btn ghost" id="quizRetry" type="button" style="display:none">أعد/أعيدي المحاولة</button></div>
+    <div id="quizResult" style="display:none;margin-top:12px"></div>
+  </div>
+</section>
+
+<!-- ============ 17 المراجع ============ -->
+<section class="screen" data-axis="الختام" data-title="المراجع">
+  <div class="kicker">الختام</div>
+  <h1>المراجع والمصادر</h1>
+  <div class="card" style="direction:ltr;text-align:left;font-size:14.5px">
+    <p>Banasiewicz, A. D. (2019). <i>Evidence-based decision-making</i>. Routledge.</p>
+    <p>Davenport, T. H., &amp; Harris, J. G. (2017). <i>Competing on analytics</i> (Updated ed.). Harvard Business Review Press.</p>
+    <p>Government Office for Science. (2024). <i>The futures toolkit</i> (2nd ed.). UK Government.</p>
+    <p>Hyndman, R. J., &amp; Athanasopoulos, G. (2021). <i>Forecasting: Principles and practice</i> (3rd ed.). OTexts.</p>
+    <p>Knaflic, C. N. (2015). <i>Storytelling with data</i>. Wiley.</p>
+    <p>OECD. (2019). <i>Strategic foresight for better policies</i>. OECD Publishing.</p>
+    <p>Provost, F., &amp; Fawcett, T. (2013). <i>Data science for business</i>. O'Reilly.</p>
+    <p>Schoemaker, P. J. H. (1995). Scenario planning: A tool for strategic thinking. <i>Sloan Management Review, 36</i>(2), 25–40.</p>
+    <p>Shmueli, G., &amp; Koppius, O. R. (2011). Predictive analytics in information systems research. <i>MIS Quarterly, 35</i>(3), 553–572.</p>
+    <p>Siegel, E. (2016). <i>Predictive analytics</i> (Rev. ed.). Wiley.</p>
+    <p>van Ooijen, C., Ubaldi, B., &amp; Welby, B. (2019). <i>A data-driven public sector</i>. OECD Working Papers on Public Governance, No. 33.</p>
+    <p>Argaam. (2024, November 27). New unemployment target set at 5% by 2030: Minister.</p>
+  </div>
+  <div class="card">
+    <p>الهيئة العامة للإحصاء. نشرات سوق العمل الربعية (مسح القوى العاملة).</p>
+    <p>الهيئة السعودية للبيانات والذكاء الاصطناعي. (2023). مبادئ أخلاقيات الذكاء الاصطناعي (الإصدار الأول).</p>
+    <p>نظام حماية البيانات الشخصية (2021) وتعديلاته (2023).</p>
+  </div>
+  <p class="note">إعداد: د. وفاء العلاوي · جامعة الأميرة نورة بنت عبدالرحمن · قسم التعليم والتعلم</p>
+</section>
+
+<div class="foot">
+  <button class="btn ghost" id="prevBtn" type="button">→ السابق</button>
+  <span class="where" id="where"></span>
+  <button class="btn" id="nextBtn" type="button">التالي ←</button>
+</div>
+</main>
+</div>
+</div>
+
+<script>
+/* ================= SCORM 1.2 (يعمل بصمت خارج نظام إدارة التعلم) ================= */
+var SCORM=(function(){
+  var api=null,on=false;
+  function find(w){var n=0;while(w&&!w.API&&w.parent&&w.parent!==w&&n<10){w=w.parent;n++;}return w&&w.API?w.API:null;}
+  function init(){try{api=find(window)||(window.opener?find(window.opener):null);if(api){var r=api.LMSInitialize("");on=(r==="true"||r===true);}}catch(e){api=null;}return on;}
+  function get(k){try{return on?api.LMSGetValue(k):"";}catch(e){return"";}}
+  function set(k,v){try{if(on)api.LMSSetValue(k,String(v));}catch(e){}}
+  function commit(){try{if(on)api.LMSCommit("");}catch(e){}}
+  function finish(){try{if(on){api.LMSCommit("");api.LMSFinish("");on=false;}}catch(e){}}
+  return{init:init,get:get,set:set,commit:commit,finish:finish,active:function(){return on;}};
+})();
+
+/* ================= البيانات ================= */
+var Y=[12.17,11.8,11.73,11.48,10.32,9.96,10.16,8.21,8.67,8.45,8.81,7.78,7.61,7.09,7.8,7.0,6.3,6.8,7.5,7.2];
+var Q=Y.map(function(_,i){return "\u2066"+(2021+Math.floor(i/4))+"-Q"+(i%4+1)+"\u2069";});
+function fit(n){var xs=[],ys=[];for(var i=0;i<n;i++){xs.push(i+1);ys.push(Y[i]);}
+  var mx=xs.reduce(function(a,b){return a+b;})/n,my=ys.reduce(function(a,b){return a+b;})/n,sxy=0,sxx=0;
+  for(i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sxx+=(xs[i]-mx)*(xs[i]-mx);}var b=sxy/sxx;return{b:b,a:my-b*mx};}
+function MA(i){if(i<3)return null;return (Y[i]+Y[i-1]+Y[i-2]+Y[i-3])/4;}
+function f2(x){return (Math.round(x*100)/100).toFixed(2);}
+function f1(x){return (Math.round(x*10)/10).toFixed(1);}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+/* ================= الحالة ================= */
+var state={screen:0,visited:{},ticket:"",quiz:null,act:{}};
+function save(){
+  var s=JSON.stringify({s:state.screen,v:Object.keys(state.visited),t:state.ticket.slice(0,300),q:state.quiz});
+  SCORM.set("cmi.core.lesson_location",state.screen);SCORM.set("cmi.suspend_data",s.slice(0,4000));SCORM.commit();
+  try{localStorage.setItem("hcd713_t12",s);}catch(e){}
+}
+function load(){
+  var raw=SCORM.get("cmi.suspend_data");
+  if(!raw){try{raw=localStorage.getItem("hcd713_t12")||"";}catch(e){raw="";}}
+  if(!raw)return;try{var o=JSON.parse(raw);state.screen=o.s||0;(o.v||[]).forEach(function(k){state.visited[k]=1;});state.ticket=o.t||"";state.quiz=o.q||null;}catch(e){}
+}
+
+/* ================= التنقل ================= */
+var screens=[].slice.call(document.querySelectorAll(".screen"));
+function buildNav(){
+  var nav=$("nav"),last="";nav.innerHTML="";
+  screens.forEach(function(sc,i){
+    var ax=sc.getAttribute("data-axis");
+    if(ax!==last){var h=document.createElement("div");h.className="nav-axis";h.textContent=ax;nav.appendChild(h);last=ax;}
+    var b=document.createElement("button");b.type="button";b.innerHTML='<span class="dot"></span><span>'+esc(sc.getAttribute("data-title"))+'</span>';
+    b.onclick=function(){go(i);$("side").classList.remove("open");};nav.appendChild(b);
+  });
+}
+function go(i){
+  if(i<0||i>=screens.length)return;state.screen=i;state.visited[i]=1;
+  screens.forEach(function(s,k){s.classList.toggle("active",k===i);});
+  var bs=$("nav").querySelectorAll("button");
+  bs.forEach(function(b,k){b.classList.toggle("active",k===i);b.classList.toggle("done",!!state.visited[k]);});
+  var n=Object.keys(state.visited).length;$("pbar").style.width=(n/screens.length*100)+"%";
+  $("ptext").textContent="تمت زيارة "+n+" من "+screens.length+" شاشة";
+  $("where").textContent=(i+1)+" / "+screens.length;
+  $("prevBtn").disabled=i===0;$("nextBtn").textContent=i===screens.length-1?"إنهاء":"التالي ←";
+  window.scrollTo(0,0);
+  if(screens[i].contains($("ticketBack"))&&state.ticket){$("ticketBack").style.display="block";$("ticketEcho").textContent=state.ticket;}
+  updateStatus();save();
+}
+function updateStatus(){
+  var all=Object.keys(state.visited).length>=screens.length;
+  if(state.quiz){SCORM.set("cmi.core.score.raw",state.quiz.pct);SCORM.set("cmi.core.score.min",0);SCORM.set("cmi.core.score.max",100);
+    SCORM.set("cmi.core.lesson_status",state.quiz.pct>=70?(all?"passed":"incomplete"):"failed");}
+  else SCORM.set("cmi.core.lesson_status",all?"completed":"incomplete");
+}
+$("prevBtn").onclick=function(){go(state.screen-1);};
+$("nextBtn").onclick=function(){if(state.screen===screens.length-1){updateStatus();SCORM.finish();alertBox();}else go(state.screen+1);};
+$("menuBtn").onclick=function(){$("side").classList.toggle("open");};
+function alertBox(){$("where").textContent="تم حفظ تقدمك. شكرًا لك.";}
+
+/* ================= أدوات عامة ================= */
+function toggleChip(id,cb){var el=$(id);el.onclick=function(e){e.preventDefault();el.classList.toggle("sel");cb(el.classList.contains("sel"));};}
+function mcq(containerId,fbId,okText,noText){
+  var box=$(containerId);[].forEach.call(box.querySelectorAll(".opt"),function(b){
+    b.onclick=function(){[].forEach.call(box.querySelectorAll(".opt"),function(x){x.classList.remove("right","wrong","sel");});
+      var ok=b.getAttribute("data-ok")==="1";b.classList.add(ok?"right":"wrong");
+      if(!ok){var r=box.querySelector('[data-ok="1"]');if(r)r.classList.add("right");}
+      var fb=$(fbId);fb.className="fb show "+(ok?"ok":"no");fb.innerHTML=ok?okText:noText;};});
+}
+/* مصنِّف: items=[{t, a}], cats=[] */
+function sorter(boxId,items,cats,btnId,scoreId,fbId){
+  var box=$(boxId);box.innerHTML="";
+  items.forEach(function(it,i){
+    var row=document.createElement("div");row.className="sort-item";
+    row.innerHTML='<div>'+esc(it.t)+'</div><div class="choices">'+cats.map(function(c){return '<button type="button" class="chip" data-c="'+esc(c)+'">'+esc(c)+'</button>';}).join("")+'</div>';
+    [].forEach.call(row.querySelectorAll(".chip"),function(ch){ch.onclick=function(){[].forEach.call(row.querySelectorAll(".chip"),function(x){x.classList.remove("sel","right","wrong");});ch.classList.add("sel");};});
+    box.appendChild(row);
+  });
+  $(btnId).onclick=function(){
+    var score=0,rows=box.querySelectorAll(".sort-item");
+    [].forEach.call(rows,function(row,i){var it=items[i],sel=row.querySelector(".chip.sel");
+      [].forEach.call(row.querySelectorAll(".chip"),function(x){x.classList.remove("right","wrong");});
+      var accept=Array.isArray(it.a)?it.a:[it.a];
+      if(sel){var ok=accept.indexOf(sel.getAttribute("data-c"))>-1;sel.classList.remove("sel");sel.classList.add(ok?"right":"wrong");if(ok)score++;}
+      if(!sel||accept.indexOf(sel.getAttribute("data-c"))<0){[].forEach.call(row.querySelectorAll(".chip"),function(x){if(accept.indexOf(x.getAttribute("data-c"))>-1)x.classList.add("right");});}
+    });
+    var sp=$(scoreId);sp.style.display="inline-block";sp.textContent=score+" من "+items.length;
+    if(fbId)$(fbId).classList.add("show");
+  };
+}
+
+/* ================= رسم المخططات ================= */
+function rtlTxt(x){return /[\u0600-\u06FF]/.test(x)?"\u202B"+x+"\u202C":x;}
+function svgEl(t,a){var e=document.createElementNS("http://www.w3.org/2000/svg",t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+function chart(svg,opt){
+  /* opt: {n (عدد النقاط على المحور), ymin,ymax, series:[{pts:[[x,y]],color,width,dash,dots}], hlines:[{y,color,label}], labels: fn(i)->text or null, vline, bands:[{x,lo,hi,color}], marks:[{x,y,color,label}] } */
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  var W=+svg.getAttribute("viewBox").split(" ")[2],H=+svg.getAttribute("viewBox").split(" ")[3];
+  var L=52,R=opt.R||20,T=18,B=40,pw=W-L-R,ph=H-T-B;
+  function X(x){return L+(x-opt.x0)/(opt.x1-opt.x0)*pw;}
+  function Yp(y){return T+(opt.ymax-y)/(opt.ymax-opt.ymin)*ph;}
+  var g=svgEl("g",{});svg.appendChild(g);
+  for(var v=opt.ymin;v<=opt.ymax+1e-9;v+=opt.ystep){
+    g.appendChild(svgEl("line",{x1:L,x2:W-R,y1:Yp(v),y2:Yp(v),stroke:v===0?"#9a92a6":"#ECE7F1","stroke-width":1}));
+    var t=svgEl("text",{x:L-8,y:Yp(v)+4,"text-anchor":"end","font-size":12,fill:"#6b6474"});t.textContent=v+"%";g.appendChild(t);
+  }
+  (opt.xticks||[]).filter(function(xt){return xt.x>=opt.x0&&xt.x<=opt.x1;}).forEach(function(xt){var t=svgEl("text",{x:X(xt.x),y:H-14,"text-anchor":"middle","font-size":12,fill:"#6b6474"});t.textContent=xt.l;g.appendChild(t);
+    g.appendChild(svgEl("line",{x1:X(xt.x),x2:X(xt.x),y1:T+ph,y2:T+ph+5,stroke:"#9a92a6"}));});
+  if(opt.vline!=null){g.appendChild(svgEl("line",{x1:X(opt.vline),x2:X(opt.vline),y1:T,y2:T+ph,stroke:"#B9B0C6","stroke-dasharray":"3 4"}));}
+  (opt.bands||[]).forEach(function(bd){var x=X(bd.x);g.appendChild(svgEl("line",{x1:x,x2:x,y1:Yp(Math.min(bd.hi,opt.ymax)),y2:Yp(Math.max(bd.lo,opt.ymin)),stroke:bd.color,"stroke-width":10,"stroke-opacity":.22,"stroke-linecap":"round"}));
+    [bd.lo,bd.hi].forEach(function(vv){var yy=Yp(Math.max(Math.min(vv,opt.ymax),opt.ymin));g.appendChild(svgEl("line",{x1:x-9,x2:x+9,y1:yy,y2:yy,stroke:bd.color,"stroke-width":2}));
+      var tt=svgEl("text",{x:x-14,y:yy+4,"text-anchor":"end","font-size":12,"font-weight":700,fill:vv<0?"#B3261E":bd.color});tt.textContent=vv+"%";g.appendChild(tt);});});
+  (opt.hlines||[]).forEach(function(h){g.appendChild(svgEl("line",{x1:L,x2:W-R,y1:Yp(h.y),y2:Yp(h.y),stroke:h.color,"stroke-width":2,"stroke-dasharray":"7 5"}));
+    if(h.label){var t=svgEl("text",{x:W-R-4,y:Yp(h.y)-6,"text-anchor":"end","font-size":12.5,"font-weight":600,fill:h.color});t.textContent=rtlTxt(h.label);g.appendChild(t);}});
+  (opt.series||[]).forEach(function(s){
+    if(!s.pts.length)return;var d=s.pts.map(function(p,i){return (i?"L":"M")+X(p[0]).toFixed(1)+" "+Yp(p[1]).toFixed(1);}).join(" ");
+    g.appendChild(svgEl("path",{d:d,fill:"none",stroke:s.color,"stroke-width":s.width||3,"stroke-dasharray":s.dash||"","stroke-linejoin":"round","stroke-linecap":"round"}));
+    if(s.dots)s.pts.forEach(function(p,i){var hl=s.hl&&s.hl(i);g.appendChild(svgEl("circle",{cx:X(p[0]),cy:Yp(p[1]),r:hl?6.5:3.6,fill:hl?"#C9A227":s.color,stroke:"#fff","stroke-width":hl?2:1}));});
+  });
+  (opt.marks||[]).forEach(function(m){g.appendChild(svgEl("circle",{cx:X(m.x),cy:Yp(m.y),r:m.r||7,fill:m.color,stroke:"#fff","stroke-width":2}));
+    if(m.label){var t=svgEl("text",{x:X(m.x)+(m.dx||12),y:Yp(m.y)+(m.dy||5),"text-anchor":m.anchor||"start","font-size":13,"font-weight":700,fill:m.color});t.textContent=rtlTxt(m.label);g.appendChild(t);}});
+  return{X:X,Y:Yp};
+}
+var yearTicks=[0,4,8,12,16,20].map(function(i){return{x:i+1,l:String(2021+i/4)};});
+
+/* ================= الشاشة 0: بطاقة الدخول ================= */
+$("saveTicket").onclick=function(){state.ticket=$("entryTicket").value.trim();$("ticketMsg").textContent=state.ticket?"حُفظت إجابتك ✓":"اكتب/ي إجابة أولًا";save();};
+
+/* ================= الشاشة 1 ================= */
+$("openCheck").onclick=function(){
+  var v=parseFloat($("openAns").value),fb=$("openFb");fb.className="fb show";
+  if(isNaN(v)){fb.classList.add("no");fb.textContent="أدخل/ي رقمًا.";return;}
+  if(Math.abs(v-0.95)<=0.1){fb.classList.add("ok");fb.innerHTML="صحيح: 5 سنوات × 1.25 = 6.25 نقطة، و7.2 − 6.25 ≈ <b>0.95%</b>، أي نحو 1%.<br><b>هل هذا منطقي؟</b> حتى أقوى الاقتصادات فيها بطالة احتكاكية: أشخاص بين وظيفتين، وخريجون وخريجات يبحثون عن أول عمل. مدّ الخط آليًّا قد يعطي أرقامًا غير واقعية.";}
+  else{fb.classList.add("no");fb.innerHTML="ليس تمامًا. من 2025 إلى 2030 خمس سنوات: 5 × 1.25 = 6.25 نقطة. اطرح/ي ذلك من 7.2.";}
+};
+[].forEach.call($("openVote").querySelectorAll(".opt"),function(b){b.onclick=function(){[].forEach.call($("openVote").querySelectorAll(".opt"),function(x){x.classList.remove("sel");});b.classList.add("sel");state.act.vote=b.getAttribute("data-v");$("openVoteFb").classList.add("show");};});
+
+/* ================= الشاشة 2: نشاط 1 ================= */
+var c1={q3:false,ma:false,tg:false};
+function drawC1(){
+  var pts=Y.map(function(y,i){return[i+1,y];}),ser=[{pts:pts,color:"#5B2A86",width:3,dots:true,hl:function(i){return c1.q3&&i%4===2;}}];
+  if(c1.ma){var m=[];for(var i=3;i<20;i++)m.push([i+1,MA(i)]);ser.push({pts:m,color:"#C9A227",width:4});}
+  chart($("ch1"),{x0:0.5,x1:20.5,ymin:4,ymax:13,ystep:1,xticks:yearTicks,series:ser,hlines:c1.tg?[{y:5,color:"#B3261E",label:"المستهدف 5%"}]:[]});
+}
+toggleChip("tgQ3",function(v){c1.q3=v;drawC1();});
+toggleChip("tgMA",function(v){c1.ma=v;drawC1();});
+toggleChip("tgTarget",function(v){c1.tg=v;drawC1();});
+(function(){
+  var qs=[
+    {q:"ما الاتجاه العام للسلسلة؟",o:["صاعد","هابط بوضوح","ثابت تقريبًا"],a:1,e:"هابط بوضوح: من 12.2% في ⁦2021-Q1⁩ إلى 7.2% في ⁦2025-Q4⁩، أي نحو 5 نقاط."},
+    {q:"ما أدنى قيمة في السلسلة؟",o:["7.2% في ⁦2025-Q4⁩","6.3% في ⁦2025-Q1⁩","7.0% في ⁦2024-Q4⁩"],a:1,e:"6.3% في ⁦2025-Q1⁩. لاحظ/ي أن أدنى قيمة ليست آخر قيمة: المعدل ارتفع بعدها."},
+    {q:"أين أكبر هبوط بين ربعين متتاليين؟",o:["من ⁦2021-Q4⁩ إلى ⁦2022-Q1⁩","من ⁦2022-Q3⁩ إلى ⁦2022-Q4⁩","من ⁦2024-Q4⁩ إلى ⁦2025-Q1⁩"],a:1,e:"من 10.16% إلى 8.21% (−1.95 نقطة). المتوسط الربعي −0.26 فقط، فالمتوسط يخفي القفزات."},
+    {q:"شغّل/ي «إبراز الربع الثالث». ماذا تلاحظ/ين؟",o:["الربع الثالث أقل من الثاني دائمًا","الربع الثالث أعلى من الثاني في 4 من 5 سنوات","لا يوجد نمط"],a:1,e:"نمط موسمي: Q3 أعلى من Q2 في 2022–2025، و2021 استثناء (11.73% مقابل 11.80%). تفسير محتمل للنقاش: دخول الخريجين والخريجات سوق العمل صيفًا — فرضية لا حقيقة مثبتة."},
+    {q:"شغّل/ي «المتوسط المتحرك». ماذا حدث للهبوط منذ 2024؟",o:["تسارع","تباطأ حتى توقف تقريبًا","انقلب إلى صعود حاد"],a:1,e:"تباطأ: المتوسط بقي بين 6.9% و7.05% طوال 2025. هذه الملاحظة ستشرح لاحقًا لماذا تخطئ النماذج."}
+  ];
+  var box=$("q1box");
+  qs.forEach(function(q,k){
+    var d=document.createElement("div");d.style.marginBottom="12px";
+    d.innerHTML='<b>'+(k+1)+') '+esc(q.q)+'</b><div class="opts">'+q.o.map(function(o,j){return '<button type="button" class="opt" data-ok="'+(j===q.a?1:0)+'">'+esc(o)+'</button>';}).join("")+'</div><div class="fb" id="q1fb'+k+'"></div>';
+    d.querySelector(".opts").id="q1o"+k;box.appendChild(d);mcq("q1o"+k,"q1fb"+k,"✓ "+q.e,"✗ "+q.e);
+  });
+})();
+
+/* ================= الشاشة 3: المستويات ================= */
+sorter("sortLevels",[
+  {t:"كم كان المعدل في ⁦2025-Q4⁩؟",a:"وصفي"},
+  {t:"لماذا ارتفع المعدل في 2025؟",a:"تشخيصي"},
+  {t:"هل سيبلغ المعدل 5% في 2030؟",a:"تنبؤي"},
+  {t:"كيف نوزّع مقاعد برنامج إعادة التأهيل على المناطق؟",a:"توجيهي"},
+  {t:"ما أدنى قيمة في السلسلة؟",a:"وصفي"},
+  {t:"هل يرتبط ارتفاع الربع الثالث بالتخرج؟",a:"تشخيصي"},
+  {t:"هل يُرجَّح أن يتأخر هذا المشروع عن موعده؟",a:"تنبؤي"},
+  {t:"أي مزيج من البرامج يقلل البطالة بأقل تكلفة؟",a:"توجيهي"}
+],["وصفي","تشخيصي","تنبؤي","توجيهي"],"chkLevels","levelsScore","levelsFb");
+
+/* ================= الشاشة 4 ================= */
+sorter("sortModel",[
+  {t:"كم مقعدًا نفتح في مركز التدريب الفصل القادم؟",a:"تنبؤي"},
+  {t:"سياسة لخفض البطالة بين خريجي وخريجات تخصص معيّن",a:"تفسيري"},
+  {t:"ميزانية برامج دعم الباحثين والباحثات عن عمل للعام القادم",a:"تنبؤي"},
+  {t:"لماذا ترتفع البطالة في منطقة بعينها رغم البرامج؟",a:"تفسيري"}
+],["تنبؤي","تفسيري"],"chkModel","modelScore","modelFb");
+$("chkMine").onclick=function(){
+  var q=$("myQ").value.trim(),d=$("myData").value.trim(),dec=$("myDec").value.trim(),t=$("myType").value,fb=$("mineFb");fb.className="fb show";
+  var msgs=[];if(!q)msgs.push("اكتب/ي السؤال التنبؤي.");if(!d)msgs.push("حدّد/ي البيانات ومصدرها.");if(!dec)msgs.push("بلا قرار تشغيلي يصبح السؤال فضوليًّا لا تشغيليًّا.");if(!t)msgs.push("اختر/ي نوع المهمة.");
+  if(msgs.length){fb.classList.add("no");fb.innerHTML=msgs.join("<br>");return;}
+  var extra=/(هل سي|هل يُرجَّح|هل يرجح).*(موظف|موظفة|مستفيد|طالب|طالبة|شخص)/.test(q)?"<br><b>تنبيه:</b> سؤالك يتنبأ بسلوك فرد بعينه، فراجع/ي الخصوصية والإنصاف (حدود التحليلات).":"";
+  fb.classList.add("ok");fb.innerHTML="سلسلتك مكتملة: سؤال ← بيانات ← قرار. هذا الجدول مسودة أولى لنشاط التقييم الثالث."+extra;
+};
+
+/* ================= شاشة النماذج والفرق بينها ================= */
+var mdl={n:false,s:false,l:false};
+function drawModels(){
+  var lin=fit(20),ser=[{pts:Y.map(function(y,j){return[j+1,y];}),color:"#5B2A86",width:3,dots:true}],nv=[[20,Y[19]]],sv=[[20,Y[19]]],lv=[[20,lin.a+lin.b*20]];
+  for(var t=21;t<=28;t++){nv.push([t,Y[19]]);sv.push([t,Y[16+((t-21)%4)]]);lv.push([t,lin.a+lin.b*t]);}
+  if(mdl.n)ser.push({pts:nv,color:"#7d7d7d",width:2.5,dash:"6 5",dots:true});
+  if(mdl.s)ser.push({pts:sv,color:"#C9A227",width:2.5,dash:"6 5",dots:true});
+  if(mdl.l)ser.push({pts:lv,color:"#2C7FA8",width:2.5,dash:"6 5",dots:true});
+  chart($("chM"),{x0:0.5,x1:28.5,ymin:3,ymax:13,ystep:1,vline:20.5,xticks:[0,4,8,12,16,20,24].map(function(i){return{x:i+1,l:String(2021+i/4)};}),series:ser,hlines:[{y:5,color:"#B3261E",label:"المستهدف 5%"}]});
+  var h="<tr><th>النموذج</th><th>افتراضه عن المستقبل</th><th class='num'>2026-Q4</th><th class='num'>2027-Q4</th></tr>";
+  h+="<tr><td>الساذج</td><td>لا شيء سيتغير</td><td class='num'>"+f2(Y[19])+"%</td><td class='num'>"+f2(Y[19])+"%</td></tr>";
+  h+="<tr><td>الساذج الموسمي</td><td>المواسم تتكرر كما في 2025</td><td class='num'>"+f2(Y[19])+"%</td><td class='num'>"+f2(Y[19])+"%</td></tr>";
+  h+="<tr><td>الاتجاه الخطي</td><td>الهبوط سيستمر بالمعدل نفسه</td><td class='num'>"+f2(lin.a+lin.b*24)+"%</td><td class='num'>"+f2(lin.a+lin.b*28)+"%</td></tr>";
+  $("mTable").innerHTML=h.replace(/(\d{4}-Q\d)/g,"⁦$1⁩");
+}
+toggleChip("tgMN",function(v){mdl.n=v;drawModels();});
+toggleChip("tgMS",function(v){mdl.s=v;drawModels();});
+toggleChip("tgML",function(v){mdl.l=v;drawModels();});
+sorter("sortFit",[
+  {t:"عدد المعاملات اليومية في جهة حكومية مستقر ويتذبذب حول 500 معاملة",a:"الساذج"},
+  {t:"زيارات الطوارئ ترتفع كل شتاء بالقدر نفسه تقريبًا، دون زيادة عامة",a:["الساذج الموسمي","ETS"]},
+  {t:"عدد مستخدمي منصة حكومية جديدة يزداد بانتظام كل شهر",a:"الخطي"},
+  {t:"الطلب على خدمة إلكترونية ينمو عامًا بعد عام ويرتفع في مواسم الإجازات",a:"ETS"},
+  {t:"نريد إظهار الاتجاه العام في تقرير سنوي دون التنبؤ بالمستقبل",a:"المتوسط المتحرك"}
+],["الساذج","الساذج الموسمي","المتوسط المتحرك","الخطي","ETS"],"chkFit","fitScore","fitFb");
+
+/* ================= الشاشة 5: سباق النماذج ================= */
+var race={snaive:false};
+function drawRace(){
+  var tr=fit(16),rows="<tr><th>الربع</th><th class='num'>الفعلي</th><th class='num'>الخطي</th><th class='num'>خطؤه</th><th class='num'>الساذج</th><th class='num'>خطؤه</th>"+(race.snaive?"<th class='num'>الساذج الموسمي</th><th class='num'>خطؤه</th>":"")+"</tr>";
+  var e1=0,e2=0,e3=0;
+  for(var i=16;i<20;i++){var p=tr.a+tr.b*(i+1),n=Y[15],s=Y[i-4];var a1=Math.abs(p-Y[i]),a2=Math.abs(n-Y[i]),a3=Math.abs(s-Y[i]);e1+=a1;e2+=a2;e3+=a3;
+    rows+="<tr><td>"+Q[i]+"</td><td class='num'>"+f2(Y[i])+"%</td><td class='num'>"+f2(p)+"%</td><td class='num'>"+f2(a1)+"</td><td class='num'>"+f2(n)+"%</td><td class='num'>"+f2(a2)+"</td>"+(race.snaive?"<td class='num'>"+f2(s)+"%</td><td class='num'>"+f2(a3)+"</td>":"")+"</tr>";}
+  rows+="<tr><th>MAE</th><td></td><td></td><th class='num'>"+f2(e1/4)+"</th><td></td><th class='num'>"+f2(e2/4)+"</th>"+(race.snaive?"<td></td><th class='num'>"+f2(e3/4)+"</th>":"")+"</tr>";
+  $("raceTable").innerHTML=rows;
+  var bet=state.act.bet;
+  $("raceFb").innerHTML=(bet==="naive"?"رهانك صحيح! ":"مفاجأة؟ ")+"<b>الساذج فاز</b> (MAE "+f2(e2/4)+" مقابل "+f2(e1/4)+"). الخطي افترض استمرار الهبوط، والواقع أن الهبوط توقف منذ 2024. ولاحظ/ي أخطاء الخطي: شبه مثالي في الربع الأول ("+f2(Math.abs(tr.a+tr.b*17-Y[16]))+") ثم يكبر الخطأ كلما ابتعدنا — وهذا معنى اتساع نطاق الثقة.<br><b>الدرس:</b> النموذج الأعقد ليس بالضرورة الأدق، وأي نموذج لا يتفوق على «الساذج» لا يستحق الاعتماد."+(race.snaive?"<br>الساذج الموسمي ("+f2(e3/4)+") أفضل من الخطي وأضعف قليلًا من الساذج العادي.":"");
+}
+[].forEach.call($("raceBet").querySelectorAll(".opt"),function(b){b.onclick=function(){[].forEach.call($("raceBet").querySelectorAll(".opt"),function(x){x.classList.remove("sel");});b.classList.add("sel");state.act.bet=b.getAttribute("data-v");$("raceOut").style.display="block";drawRace();};});
+toggleChip("tgSNaive",function(v){race.snaive=v;drawRace();});
+$("absCheck").onclick=function(){var v=parseFloat($("absAns").value),fb=$("absFb");fb.className="fb show";
+  if(Math.abs(v-0.025)<=0.01||Math.abs(v-0.03)<0.006){fb.classList.add("ok");fb.innerHTML="صحيح: (0.5 + 0.2 − 0.4 − 0.2) ÷ 4 ≈ 0.03. يبدو النموذج شبه مثالي لأن الأخطاء الموجبة والسالبة ألغت بعضها! بالقيمة المطلقة: (0.5 + 0.2 + 0.4 + 0.2) ÷ 4 = <b>0.33</b>. لذلك نأخذ «المطلق».";}
+  else{fb.classList.add("no");fb.innerHTML="اجمع/ي الأرقام بإشاراتها: 0.5 + 0.2 − 0.4 − 0.2 = 0.1، ثم اقسم/ي على 4.";}};
+
+/* ================= الشاشة 6: مختبر الخط ================= */
+function drawLab(){
+  var n=+$("trainEnd").value,t=+$("tSel").value,m=fit(n),pred=m.a+m.b*t;
+  $("trainLbl").textContent=Q[n-1]+" ("+n+" ربعًا)";$("tLbl").textContent=t+" = \u2066"+(2021+Math.floor((t-1)/4))+"-Q"+((t-1)%4+1)+"\u2069";
+  $("slopeV").textContent=f2(m.b);$("intV").textContent=f2(m.a)+"%";$("predV").textContent=f2(pred)+"%";
+  $("predCalc").innerHTML="<span dir='ltr'>"+f2(m.a)+" "+(m.b<0?"−":"+")+" "+f2(Math.abs(m.b))+" × "+t+"</span>";
+  var pts=Y.map(function(y,i){return[i+1,y];}),ln=[[0,m.a],[40,m.a+m.b*40]];
+  chart($("ch2"),{x0:0,x1:40.6,ymin:-1,ymax:13,ystep:2,xticks:[0,4,8,12,16,20,24,28,32,36,40].map(function(i){return{x:i+1,l:String(2021+i/4)};}),vline:n+0.5,
+    series:[{pts:pts.slice(0,n),color:"#5B2A86",width:2.5,dots:true},{pts:pts.slice(n),color:"#B9B0C6",width:2,dots:true},{pts:ln,color:"#2C7FA8",width:2.5,dash:"6 5"}],
+    hlines:[{y:5,color:"#B3261E",label:"المستهدف 5%"}],marks:[{x:t,y:pred,color:"#C9A227",label:f2(pred)+"%",anchor:t>32?"end":"start",dx:t>32?-12:12,dy:-10},{x:0,y:m.a,color:"#2C7FA8",r:5,label:"التقاطع",dy:-10}]});
+  var end=m.a+m.b*20;var neg=pred<0?"<span class='warn'>⚠ التنبؤ سالب: بطالة أقل من صفر مستحيلة. النموذج لا يعرف حدود الواقع.</span><br>":"";
+  $("labFb").innerHTML=neg+"<b>لاحظ/ي:</b> عند نهاية 2025 (t = 20) يقع الخط عند <b>"+f2(end)+"%</b> بينما الفعلي 7.20%. المسطرة لا تبدأ من آخر قيمة، بل من موقعها على الخط، لأن هبوط 2021–2023 يسحبها للأسفل."+
+    "<br>غيّر/ي «بيانات التدريب حتى» إلى ⁦2024-Q4⁩ ثم ⁦2025-Q4⁩: الميل يتغير ("+f2(fit(16).b)+" ← "+f2(fit(20).b)+"). <b>شكل المعادلة يحدده النموذج، وأرقامها تحددها البيانات.</b>";
+}
+$("trainEnd").oninput=drawLab;$("tSel").oninput=drawLab;
+
+/* ================= الشاشة 7: الحدود ================= */
+(function(){
+  var L=[["فرط المواءمة","يحفظ النموذج تفاصيل الماضي وضوضاءه فيبدو دقيقًا عليه ويخفق في المستقبل؛ لذا يُختبر على بيانات لم يرها. مثل حفظ بنك الأسئلة."],
+    ["افتراض استمرار الماضي","تفترض النماذج بقاء البنية التي ولّدت البيانات. في قضيتنا: الخطي افترض استمرار الهبوط فخسر أمام الساذج."],
+    ["جودة البيانات","البيانات الناقصة أو المتغيرة في تعريفاتها تنتج تنبؤات مضللة. في ملفنا مصدران للبيانات: هل المنهجية ثابتة؟"],
+    ["النزاهة والإنصاف","إذا عكست البيانات التاريخية تحيّزًا ضد فئة أعاده النموذج (مبادئ أخلاقيات الذكاء الاصطناعي، سدايا 2023)."],
+    ["الخصوصية","التنبؤ بسلوك أفراد بعينهم يعالج بيانات شخصية: مشروعية الغرض والحد الأدنى من البيانات (نظام حماية البيانات الشخصية)."]];
+  var box=$("limits");L.forEach(function(l,i){var d=document.createElement("div");d.className="flip";d.innerHTML='<div class="flip-in"><div class="face front"><span style="opacity:.8">'+(i+1)+'</span><b>'+l[0]+'</b><span style="font-size:12.5px;opacity:.8">انقر/ي للقلب</span></div><div class="face back">'+l[1]+'</div></div>';d.onclick=function(){d.classList.toggle("on");};box.appendChild(d);});
+  $("limQ").innerHTML='<b>جهة تبني نموذجًا يتنبأ «هل سيترك هذا الموظف/ة العمل خلال سنة؟». ما الحدّان الأخطر؟</b><div class="opts" id="limO"><button class="opt" data-ok="0" type="button">فرط المواءمة وجودة البيانات</button><button class="opt" data-ok="1" type="button">الخصوصية والنزاهة والإنصاف</button><button class="opt" data-ok="0" type="button">افتراض استمرار الماضي فقط</button></div><div class="fb" id="limFb"></div>';
+  mcq("limO","limFb","✓ صحيح: التنبؤ بسلوك فرد بعينه يعالج بيانات شخصية، وقد يظلم فئة إن كانت البيانات التاريخية متحيزة.","✗ الأخطر هنا أخلاقي: التنبؤ على مستوى الفرد يمس الخصوصية، وقد يعيد تحيّزًا تاريخيًّا ضد فئة.");
+})();
+
+/* ================= الشاشة 8: الإشارات + المحركات ================= */
+sorter("sortSignals",[
+  {t:"نمو الفئة الشابة في سن العمل",a:"اتجاه كبير"},
+  {t:"التحول الرقمي للخدمات الحكومية",a:"اتجاه كبير"},
+  {t:"ارتفاع مشاركة المرأة في سوق العمل",a:"اتجاه كبير"},
+  {t:"إعلانات وظائف تطلب «مهارات» بدل «شهادة»",a:"إشارة ضعيفة"},
+  {t:"جهة تجرّب وكيل ذكاء اصطناعي للرد على المراجعين والمراجعات",a:"إشارة ضعيفة"},
+  {t:"انتشار العمل الحر عبر المنصات بين الخريجين والخريجات",a:["اتجاه كبير","إشارة ضعيفة"]}
+],["اتجاه كبير","إشارة ضعيفة"],"chkSignals","signalsScore","signalsFb");
+var drivers=[];
+$("addDriver").onclick=function(){var t=$("driverTxt").value.trim();if(!t)return;drivers.push([t,$("driverCat").value]);$("driverTxt").value="";
+  $("driverList").innerHTML=drivers.map(function(d){return '<span class="pill" style="margin:3px">'+esc(d[1])+': '+esc(d[0])+'</span>';}).join(" ")+'<p class="note">هذه القائمة هي إجابة «ما العوامل التي لا يعرفها النموذج؟»، والمحركات عالية الأثر وعالية عدم اليقين منها تصلح محاور للسيناريوهات.</p>';};
+
+/* ================= الشاشة 9: المتوسط المتحرك ================= */
+function drawMA(){
+  var k=+$("maSel").value,i=k-1,ma=[];for(var j=3;j<20;j++)ma.push([j+1,MA(j)]);
+  chart($("ch3"),{x0:0.5,x1:20.5,ymin:5,ymax:13,ystep:1,xticks:yearTicks,series:[{pts:Y.map(function(y,j){return[j+1,y];}),color:"#5B2A86",width:2.5,dots:true},{pts:ma,color:"#C9A227",width:4}],
+    marks:[{x:k,y:MA(i),color:"#8A6D12",label:f2(MA(i))+"%",dy:-12,anchor:"middle",dx:0}]});
+  $("maQ").textContent=Q[i];$("maA").textContent=f2(Y[i])+"%";$("maV").textContent=f2(MA(i))+"%";
+}
+$("maSel").oninput=drawMA;
+(function(){var ends=[7,11,15,19],h="<tr><th>نهاية السنة</th><th class='num'>المتوسط المتحرك</th><th class='num'>الهبوط عن السنة السابقة (نقطة)</th></tr><tr><td>2021</td><td class='num'>"+f2(MA(3))+"%</td><td class='num'>—</td></tr>";
+  var prev=MA(3);ends.forEach(function(e){h+="<tr><td>"+(2021+(e+1)/4-1)+"</td><td class='num'>"+f2(MA(e))+"%</td><td class='num'>"+f2(prev-MA(e))+"</td></tr>";prev=MA(e);});$("maYears").innerHTML=h;})();
+
+/* ================= الشاشة 10: الأدوات الأربع ================= */
+var showCI=false;
+function drawTools(){
+  var lin=fit(20),lpts=[[20,lin.a+lin.b*20],[40,lin.a+lin.b*40]];
+  chart($("ch4"),{R:150,x0:0.5,x1:41,ymin:showCI?-6:-1,ymax:showCI?24:13,ystep:showCI?6:2,xticks:[0,4,8,12,16,20,24,28,32,36].map(function(i){return{x:i+1,l:String(2021+i/4)};}).concat([{x:41,l:"2031"}]),vline:20.5,
+    series:[{pts:Y.map(function(y,j){return[j+1,y];}),color:"#5B2A86",width:3,dots:true},{pts:lpts,color:"#2C7FA8",width:2.5,dash:"3 5"}],
+    hlines:[{y:5,color:"#B3261E",label:"المستهدف 5%"}],
+    bands:showCI?[{x:40,lo:-4,hi:23,color:"#8A6D12"}]:[],
+    marks:[{x:40,y:10,color:"#8A6D12",label:"10% Power BI (4)"},{x:40,y:1.3,color:"#C9A227",label:"1.3% ETS",dy:-4},{x:40,y:1,color:"#7d7d7d",label:"1% Power BI",dy:12},{x:40,y:0.2,color:"#2C7FA8",label:"0.2% خطي",dy:26}]});
+}
+[].forEach.call($("toolBet").querySelectorAll(".opt"),function(b){b.onclick=function(){[].forEach.call($("toolBet").querySelectorAll(".opt"),function(x){x.classList.remove("sel");});b.classList.add("sel");
+  $("toolsOut").style.display="block";drawTools();
+  $("betFb").innerHTML=(b.getAttribute("data-v")==="no"?"توقعك صحيح. ":"مفاجأة! ")+"النتائج تراوحت من <b>0.2% إلى 10%</b>، أي نحو 50 ضعفًا، والبيانات واحدة. النتيجة حساسة للأداة وإصدارها وإعداداتها؛ وتغيير إعداد واحد في Power BI (الموسمية = 4) قلب الاتجاه من هبوط إلى صعود.";};});
+toggleChip("tgCI",function(v){showCI=v;drawTools();});
+mcq("oddQ","oddFb","✓ صحيح. الخط المستقيم يمر وسط النقاط كلها، وهبوط 2021–2023 يسحبه للأسفل، فيبدأ أدنى من الواقع قبل أن يبدأ التنبؤ أصلًا. لهذا يبلغ المستهدف مبكرًا جدًّا.","✗ انظر/ي جيدًا: الخط المنقّط يبدأ نحو 6.0%، بينما آخر قيمة فعلية 7.2%. المسطرة تبدأ من موقعها على الخط لا من آخر نقطة.");
+$("rnBuild").onclick=function(){var a=$("rn1").value,lo=$("rn2").value,hi=$("rn3").value,m=$("rn4").value,as=$("rn5").value.trim(),o=$("rnOut");o.style.display="block";
+  if(!a||!lo||!hi||!as){o.textContent="أكمل/ي الحقول الخمسة: الرقم وحدي النطاق والطريقة والافتراض. الرقم وحده لا يكفي!";return;}
+  var warn=(+lo<0)?"\n\n⚠ الحد الأدنى سالب: قيمة مستحيلة. اذكر/ي ذلك صراحة أو قيّد/ي الحد عند الصفر.":"";
+  o.textContent="«نتوقع أن يبلغ معدل البطالة بين السعوديين والسعوديات نحو "+a+"% بنهاية 2027، ضمن نطاق "+lo+"%–"+hi+"% بثقة 95%، بطريقة "+m+"، بافتراض "+as+".»"+warn;};
+
+/* ================= الشاشة 11: نشاط 2 ================= */
+(function(){var Qs=[["لماذا يختلف ETS عن الخطي؟ وأيهما أكثر واقعية؟","النموذجان متفقان في الاتجاه الهابط والفرق بينهما صغير، لكن كليهما غير واقعي في 2030؛ فمعدل 0.2% أو 1.3% أقل بكثير مما تعرفه الاقتصادات، لأن النموذجين يمدّان الهبوط دون حدّ أدنى. الحكم المهني يرفض النتيجتين رقمًا للتخطيط."],
+  ["ماذا يحدث لنطاق الثقة كلما ابتعدنا في المستقبل؟","يتسع، لأن عدم اليقين يتراكم. التنبؤ القريب يصلح للتشغيل والميزانية، أما 2030 فيحتاج أدوات مكمّلة (السيناريوهات)."],
+  ["ما العوامل التي لا يعرفها النموذج؟","سياسات التوطين وبرامج الدعم، وتبنّي الذكاء الاصطناعي، وأسعار النفط والنمو الاقتصادي، وأعداد الخريجين والخريجات، والمشاريع الكبرى. النموذج لا يعرف إلا القيم السابقة للمعدل."],
+  ["هل تكفي الأرقام لاتخاذ قرار؟ ولماذا؟","لا. نحتاج تفصيل البطالة حسب الجنس والعمر والمؤهل والمنطقة، والوظائف الشاغرة، وأعداد الخريجين والخريجات المتوقعة، والقطاعات النامية."]];
+  var box=$("act2");Qs.forEach(function(q,i){var d=document.createElement("div");d.style.marginBottom="14px";
+    d.innerHTML='<b>'+(i+1)+') '+q[0]+'</b><textarea id="a2_'+i+'" placeholder="إجابتك…"></textarea><button class="btn ghost" type="button" style="margin-top:6px">اكشف الإجابة النموذجية</button><div class="fb info">'+q[1]+'</div>';
+    var btn=d.querySelector("button"),fb=d.querySelector(".fb");btn.onclick=function(){if(!$("a2_"+i).value.trim()){btn.textContent="اكتب/ي إجابتك أولًا";return;}fb.classList.add("show");btn.style.display="none";};box.appendChild(d);});})();
+
+/* ================= الشاشة 12: السيناريوهات ================= */
+var scen={base:7.2,imp:[-1,1.5,-0.5,0.8]};
+var SC=[["قفزة المهارات","سريع · مواءمة عالية","تقنيات جديدة تولّد وظائف نوعية، ومنظومة تدريب مرنة تعيد تأهيل الكوادر بسرعة."],
+        ["فجوة الأتمتة","سريع · مواءمة منخفضة","أتمتة متسارعة تلغي الوظائف الروتينية أسرع من قدرة التدريب على إعادة التأهيل."],
+        ["النمو المتدرّج","بطيء · مواءمة عالية","مهارات جيدة وتحوّل تقني تدريجي؛ تحسّن مستقر لكنه أبطأ."],
+        ["الركود الهيكلي","بطيء · مواءمة منخفضة","تقدّم تقني محدود وضعف مواءمة؛ تباطؤ في خلق الوظائف النوعية."]];
+function buildScen(){
+  SC.forEach(function(s,i){var el=$("qd"+i);el.innerHTML='<h4>«'+s[0]+'»</h4><small>'+s[2]+'</small><div class="rate" id="sr'+i+'"></div><label style="font-size:12.5px">الأثر: <b id="si'+i+'" dir="ltr"></b> نقطة</label><input type="range" min="-3" max="3" step="0.1" value="'+scen.imp[i]+'" id="ss'+i+'">';
+    $("ss"+i).oninput=function(){scen.imp[i]=+this.value;calcScen();};});
+  [].forEach.call($("baseOpts").querySelectorAll(".opt"),function(b){b.onclick=function(){[].forEach.call($("baseOpts").querySelectorAll(".opt"),function(x){x.classList.remove("sel");});b.classList.add("sel");scen.base=+b.getAttribute("data-v");calcScen();};});
+  calcScen();
+}
+function calcScen(){
+  var res=[],unreal=false;SC.forEach(function(s,i){var r=Math.max(0,scen.base+scen.imp[i]);res.push(r);$("sr"+i).textContent=f1(r)+"%";$("si"+i).textContent=(scen.imp[i]>0?"+":"")+f1(scen.imp[i]);if(r<2)unreal=true;});
+  var bfb=$("baseFb");bfb.className="fb show";
+  if(scen.base===7.2){bfb.classList.add("ok");bfb.innerHTML="اختيار محايد: «لو بقي الوضع كما هو»، ولا يعتمد على نموذج مختلف عليه. وقد رأيت في سباق النماذج أن «آخر قيمة» كانت أدق من مدّ الخط.";}
+  else if(scen.base===10){bfb.classList.add("info");bfb.innerHTML="متشائم ونطاقه واسع جدًّا (−4% إلى 23%). مقبول إن بُرِّر، لكن ارتفاع 2025 أغلبه موسمي.";}
+  else{bfb.classList.add("no");bfb.innerHTML="هل يُعقل معدل بطالة بهذا الانخفاض؟ خط أساس "+scen.base+"% يجعل السيناريوهات قرب الصفر. لا تقبل/ي رقم النموذج كما هو.";}
+  var reach=res.filter(function(r){return r<=5;}).length;
+  $("scenFb").innerHTML=(unreal?'<span class="warn">⚠ بعض النتائج أقل من 2%: غير واقعية اقتصاديًّا.</span><br>':'')+
+    (reach?"يبلغ المستهدف "+reach+" سيناريو/سيناريوهات بهذه الافتراضات.":"لا يبلغ أي سيناريو المستهدف 5% بهذه الافتراضات؛ وأقربها بفارق "+f1(Math.min.apply(null,res)-5)+" نقطة.")+
+    " <b>جرّب/ي:</b> اجعل/ي أثر «قفزة المهارات» −2.2 (مع خط أساس 7.2%) ثم اسأل/ي: ما الذي قد يُحدث أثرًا بهذا الحجم؟<br><span class='note'>تذكير: السيناريوهات لا تُرتَّب حسب الاحتمال، والهدف قرارات مرنة تصلح في أكثر من سيناريو.</span>";
+}
+sorter("sortInd",[
+  {t:"تحسّن سوق العمل",a:"ضعيف"},
+  {t:"معدل البطالة بين حملة البكالوريوس (ربعي، الهيئة العامة للإحصاء)",a:"جيد"},
+  {t:"عدد الشهادات المهنية الرقمية الممنوحة للمواطنين والمواطنات",a:"جيد"},
+  {t:"زيادة الاهتمام بالذكاء الاصطناعي",a:"ضعيف"},
+  {t:"نسبة البطالة طويلة الأمد (أكثر من سنة)",a:"جيد"},
+  {t:"نمو الوظائف التقنية في بيانات التأمينات الاجتماعية",a:"جيد"}
+],["جيد","ضعيف"],"chkInd","indScore",null);
+mcq("prepQ","prepFb","✓ صحيح: «فجوة الأتمتة» أعلى أثر سلبي. ولا يبلغ المستهدف أي سيناريو بخط أساس 7.2%. والقرار الجيد يصلح أيضًا في سيناريوهات أخرى: إعادة التأهيل مفيدة في «قفزة المهارات» و«فجوة الأتمتة» معًا.","✗ السيناريوهات لا تُرتَّب بالاحتمال، ولا نستعد للأقرب إلى المستهدف بل للأخطر أثرًا: «فجوة الأتمتة».");
+
+/* ================= المحور الثالث: إضافات ================= */
+[].forEach.call(document.querySelectorAll(".partyq"),function(b){b.onclick=function(){$("partyFb").className="fb info show";$("partyFb").innerHTML="<b>"+b.textContent+":</b> "+b.getAttribute("data-t");b.dataset.seen=1;
+  if(document.querySelectorAll(".partyq[data-seen]").length>=4)$("partyLesson").classList.add("show");};});
+$("bcCheck").onclick=function(){var v=parseFloat($("bcAns").value),fb=$("bcFb");fb.className="fb show";
+  if(Math.abs(v-0.44)<=0.03){fb.classList.add("ok");fb.innerHTML="صحيح: (7.2 − 5) ÷ 5 سنوات = <b>0.44 نقطة سنويًّا</b>. هكذا يعمل الاستشراف العكسي: نبدأ من الهدف ونحسب ما يلزم كل سنة.";$("bcQ").style.display="block";}
+  else{fb.classList.add("no");fb.innerHTML="الفجوة 7.2 − 5 = 2.2 نقطة، والمدة 5 سنوات. اقسم/ي الفجوة على المدة.";}};
+mcq("bcO","bcOFb","✓ صحيح. المطلوب 0.44 والهبوط الأخير 0.43: الوتيرة الحالية «بالكاد» تكفي. لكن الهبوط يتناقص كل سنة، فإذا استمر التناقص فلن نصل دون تدخلات إضافية مقصودة. هذا ما تكشفه السيناريوهات المعيارية: الفجوة بين المسار الحالي والمسار المطلوب.","✗ قارن/ي الرقمين: المطلوب 0.44 سنويًّا، وهبوط السنة الأخيرة 0.43، والهبوط يتناقص كل سنة. الوتيرة الحالية بالكاد تكفي، وقد لا تكفي إن استمر التباطؤ.");
+
+var DRV=[["سرعة تبنّي الذكاء الاصطناعي والأتمتة","تقني",1,1],["مواءمة مخرجات التعليم والتدريب مع السوق","اجتماعي",1,1],["أسعار النفط والنمو الاقتصادي","اقتصادي",1,1],["نمو الفئة الشابة في سن العمل","اجتماعي",1,0],["استمرار سياسات التوطين المعلنة","سياسي",1,0],["انتشار العمل الحر عبر المنصات","تقني",0,1],["دخول الخريجين والخريجات سوق العمل صيفًا","اجتماعي",0,0]];
+(function(){var box=$("drvBox");DRV.forEach(function(d,i){var r=document.createElement("div");r.className="sort-item";
+  r.innerHTML='<div><b>'+d[0]+'</b> <span class="pill">'+d[1]+'</span></div><div class="choices"><span class="note">الأثر:</span><button type="button" class="chip" data-g="i" data-v="1">عالٍ</button><button type="button" class="chip" data-g="i" data-v="0">منخفض</button><span class="note">عدم اليقين:</span><button type="button" class="chip" data-g="u" data-v="1">عالٍ</button><button type="button" class="chip" data-g="u" data-v="0">منخفض</button></div>';
+  [].forEach.call(r.querySelectorAll(".chip"),function(c){c.onclick=function(){[].forEach.call(r.querySelectorAll('.chip[data-g="'+c.dataset.g+'"]'),function(x){x.classList.remove("sel","right","wrong");});c.classList.add("sel");};});box.appendChild(r);});})();
+$("drvCheck").onclick=function(){var ok=0,rows=$("drvBox").querySelectorAll(".sort-item");
+  [].forEach.call(rows,function(r,i){["i","u"].forEach(function(g,k){var ans=DRV[i][2+k],sel=r.querySelector('.chip.sel[data-g="'+g+'"]');
+    [].forEach.call(r.querySelectorAll('.chip[data-g="'+g+'"]'),function(x){x.classList.remove("right","wrong");if(+x.dataset.v===ans&&(!sel||+sel.dataset.v!==ans))x.classList.add("right");});
+    if(sel){sel.classList.remove("sel");if(+sel.dataset.v===ans){sel.classList.add("right");ok++;}else sel.classList.add("wrong");}});});
+  $("drvScore").style.display="inline-block";$("drvScore").textContent=ok+" من "+DRV.length*2;$("drvFb").classList.add("show");
+  var svg=$("drvMap");svg.style.display="block";while(svg.firstChild)svg.removeChild(svg.firstChild);
+  var W=900,H=420,cx=450,cy=210;
+  [[cx,10,440,190,"#E3F4EA","أثر عالٍ: محاور السيناريوهات"],[10,10,435,190,"#EFE8F6","أثر عالٍ: اتجاهات شبه مؤكدة"],[cx,210,440,190,"#FBF4DF","أثر منخفض: نراقبها"],[10,210,435,190,"#F2F0F4","أثر منخفض: خلفية"]].forEach(function(q){
+    svg.appendChild(svgEl("rect",{x:q[0],y:q[1],width:q[2],height:q[3],rx:12,fill:q[4]}));var t=svgEl("text",{x:q[0]+q[2]-14,y:q[1]+26,"text-anchor":"end","font-size":15,"font-weight":700,fill:"#3F1C5E"});t.textContent=rtlTxt(q[5]);svg.appendChild(t);});
+  [[cx+220,"عدم يقين عالٍ ←"],[cx-220,"→ عدم يقين منخفض"]].forEach(function(a){var t1=svgEl("text",{x:a[0],y:H-1,"text-anchor":"middle","font-size":12.5,fill:"#6b6474"});t1.textContent=rtlTxt(a[1]);svg.appendChild(t1);});
+  var cnt={};DRV.forEach(function(d){var key=d[2]+""+d[3];cnt[key]=(cnt[key]||0)+1;var n=cnt[key];
+    var x=d[3]?cx+410:cx-20,y=(d[2]?10:210)+30+n*38;
+    svg.appendChild(svgEl("circle",{cx:x,cy:y-5,r:6,fill:d[2]&&d[3]?"#2E7D5B":"#5B2A86"}));
+    var t=svgEl("text",{x:x-14,y:y,"text-anchor":"end","font-size":14,fill:"#1F1A24"});t.textContent=rtlTxt(d[0]);svg.appendChild(t);});
+};
+
+var STEP8=[["تحديد القضية والأفق الزمني","نحدد سؤالًا واحدًا واضحًا ومدى زمنيًّا.","«سوق العمل للمواطنين والمواطنات حتى 2030».","لماذا 2030 لا 2026؟ لأن التنبؤ يكفي للأفق القريب، والسيناريوهات للبعيد."],
+["تحديد أصحاب المصلحة","من يتأثر بالقضية ومن يؤثر فيها؟","وزارة الموارد البشرية والتنمية الاجتماعية، والمؤسسة العامة للتدريب التقني والمهني، والجامعات، والقطاع الخاص، والباحثون والباحثات عن عمل، والهيئة العامة للإحصاء بوصفها مصدر البيانات.","من الذي يغيب عادة عن هذه القائمة؟ (مثلًا: الموظفون والموظفات المهددة وظائفهم بالأتمتة)"],
+["رصد الاتجاهات الأساسية","القوى شبه المؤكدة التي ستحدث في كل المستقبلات.","نمو الفئة الشابة في سن العمل، واستمرار التحول الرقمي.","هذه تدخل السيناريوهات الأربعة كلها، لذلك لا تصلح محورًا."],
+["تحديد حالات عدم اليقين الحرجة","أهم عاملين عاليَي الأثر وغير مؤكدين (من خريطة المحركات).","سرعة تبنّي الذكاء الاصطناعي، ومواءمة التعليم والتدريب مع السوق.","لماذا عاملان فقط؟ لأن عاملين يعطيان 4 سيناريوهات يمكن إدارتها؛ ثلاثة تعطي 8."],
+["بناء المصفوفة 2×2","كل عامل محور له طرفان متقابلان، فتنتج أربعة سيناريوهات.","تبنٍّ سريع/بطيء × مواءمة عالية/منخفضة ← قفزة المهارات، فجوة الأتمتة، النمو المتدرّج، الركود الهيكلي.","الطرفان يجب أن يكونا متقابلين ومعقولين، لا «جيد جدًّا» و«كارثي»."],
+["كتابة السرديات وفحص اتساقها","اسم معبّر لكل سيناريو وقصة منطقية متسقة داخليًّا.","«فجوة الأتمتة»: أتمتة متسارعة تلغي الوظائف الروتينية أسرع من قدرة التدريب على إعادة التأهيل؛ موظف/ة إدخال البيانات يفقد وظيفته.","اختبار الاتساق: هل يمكن أن تحدث كل أجزاء القصة معًا دون تناقض؟"],
+["اشتقاق مؤشرات الإنذار المبكر","بيانات تُرصد دوريًّا لنعرف أي سيناريو يقترب.","البطالة بين حملة البكالوريوس (ربعي، الهيئة العامة للإحصاء) لفجوة الأتمتة؛ الشهادات المهنية الرقمية لقفزة المهارات.","المؤشر الجيد قابل للقياس ومتاح من مصدر."],
+["استخلاص الدلالات للقرار","ما الإجراءات الصالحة في كل السيناريوهات؟ وما الخاصة ببعضها؟","إعادة التأهيل الرقمي تصلح في معظم السيناريوهات (قرار مرن)؛ شبكات الحماية خاصة بفجوة الأتمتة.","لا نختار «أفضل» سيناريو ونخطط له وحده."]];
+(function(){var bb=$("stepBtns");STEP8.forEach(function(s,i){var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=(i+1)+". "+s[0];b.onclick=function(){showStep(i);};bb.appendChild(b);});})();
+function showStep(i){[].forEach.call($("stepBtns").querySelectorAll(".chip"),function(c,k){c.classList.toggle("sel",k===i);});var s=STEP8[i];
+  $("stepPanel").innerHTML='<span class="pill">الخطوة '+(i+1)+' من 8</span><h2 style="margin-top:8px">'+s[0]+'</h2><p>'+s[1]+'</p><div class="quote"><b>في قضيتنا:</b> '+s[2]+'</div><p class="note">💡 '+s[3]+'</p><div class="row"><button class="btn ghost" type="button" '+(i===0?"disabled":"")+' id="stPrev">→ السابقة</button><button class="btn" type="button" '+(i===7?"disabled":"")+' id="stNext">التالية ←</button></div>';
+  $("stPrev").onclick=function(){showStep(i-1);};$("stNext").onclick=function(){showStep(i+1);};}
+showStep(0);
+
+sorter("sortFate",[
+  {t:"يتأهل لوظيفة تحليلية أفضل",a:"قفزة المهارات"},
+  {t:"يفقد وظيفته قبل أن يُعاد تأهيله",a:"فجوة الأتمتة"},
+  {t:"يبقى في وظيفته ويتدرّب بهدوء",a:"النمو المتدرّج"},
+  {t:"يبقى في وظيفته بلا تطوّر",a:"الركود الهيكلي"}
+],["قفزة المهارات","فجوة الأتمتة","النمو المتدرّج","الركود الهيكلي"],"chkFate","fateScore","fateFb");
+sorter("sortRobust",[
+  {t:"برنامج إعادة تأهيل رقمي للموظفين والموظفات في الوظائف الإدارية",a:"مرن"},
+  {t:"شبكات حماية ودعم دخل مؤقت للمتأثرين بالأتمتة",a:"خاص بسيناريو"},
+  {t:"تحفيز تبنّي التقنية في القطاع الخاص",a:"خاص بسيناريو"},
+  {t:"تجميد كل برامج التدريب حتى تتضح الصورة في 2030",a:"غير مناسب"}
+],["مرن","خاص بسيناريو","غير مناسب"],"chkRobust","robustScore","robustFb");
+
+/* ================= الشاشة 13: ترتيب الخطوات ================= */
+var STEPS=[["تحديد سؤال القرار","ما القرار الذي سيتأثر بالتنبؤ؟ ومتى يُتخذ؟"],["جمع البيانات والتحقق من جودتها","هل السلسلة كاملة ومتسقة التعريف عبر الزمن؟"],["بناء خط الأساس التنبؤي","ما القيمة المتوقعة إذا استمرت الأنماط الحالية؟ وما نطاقها؟"],["المقارنة بالمستهدف","ما حجم الفجوة بين المتوقع والمستهدف؟"],["اختبار السيناريوهات","كيف تتغير الصورة إذا تغيّر محرك رئيس؟"],["اختيار البدائل والقرار","ما الخيار الذي يصمد في أكثر من سيناريو؟"],["المتابعة وإعادة التنبؤ","ما المؤشر الذي نرصده؟ ومتى نعيد النظر؟"]];
+var order=[4,1,6,0,3,5,2];
+function drawSteps(showQ){var box=$("stepsOrder");box.innerHTML="";order.forEach(function(k,i){var d=document.createElement("div");d.className="sitem";
+  d.innerHTML='<span class="n">'+(i+1)+'</span><span><b>'+STEPS[k][0]+'</b>'+(showQ?'<br><span class="note">'+STEPS[k][1]+'</span>':'')+'</span><span class="mv"><button type="button" aria-label="أعلى">▲</button><button type="button" aria-label="أسفل">▼</button></span>';
+  var b=d.querySelectorAll(".mv button");b[0].onclick=function(){if(i>0){var t=order[i-1];order[i-1]=order[i];order[i]=t;drawSteps(showQ);}};b[1].onclick=function(){if(i<order.length-1){var t=order[i+1];order[i+1]=order[i];order[i]=t;drawSteps(showQ);}};box.appendChild(d);});}
+$("chkSteps").onclick=function(){var ok=0;order.forEach(function(k,i){if(k===i)ok++;});var fb=$("stepsFb");fb.className="fb show "+(ok===7?"ok":"no");
+  fb.innerHTML=ok===7?"✓ ترتيب صحيح. لاحظ/ي أن الخطوة 7 تعيدنا إلى البداية: التنبؤ يُعاد كلما صدرت بيانات جديدة.":ok+" من 7 في موضعها الصحيح. فكّر/ي: لا نبني خط أساس قبل التحقق من جودة البيانات، ولا نختار قرارًا قبل اختبار السيناريوهات.";};
+$("showSteps").onclick=function(){order=[0,1,2,3,4,5,6];drawSteps(true);$("stepsFb").className="fb show info";$("stepsFb").textContent="هذا الترتيب الصحيح مع السؤال الموجّه لكل خطوة.";};
+
+/* ================= الشاشة 14: التحيزات ================= */
+sorter("sortBias",[
+  {t:"عرض الفريق على الوزير «البطالة ستكون 1.3% في 2030» دون أي نطاق",a:"الإفراط في الثقة"},
+  {t:"أول رقم ظهر كان 0.2% (الخطي)، فظل الفريق يقيس كل النتائج الأخرى عليه",a:"الإرساء"},
+  {t:"اختار الفريق نموذج ETS لأنه يُظهر بلوغ المستهدف، وتجاهل Power BI لأنه لا يُظهره",a:"التأكيد"},
+  {t:"افترض الفريق أن سوق العمل في 2030 سيشبه سوق اليوم تمامًا",a:"تحيّز الحاضر"}
+],["الإفراط في الثقة","الإرساء","التأكيد","تحيّز الحاضر"],"chkBias","biasScore",null);
+
+/* ================= الشاشة 15: المذكرة ================= */
+function memoText(){var g=function(id){return $(id).value.trim();};
+  return "إلى: صانع/ة القرار\nالموضوع: مستهدف بطالة 5% بين السعوديين والسعوديات بحلول 2030\n\nما تقوله البيانات: انخفاض من 12.2% (2021) إلى 7.2% (2025)، مع تباطؤ منذ 2024.\nمدى اليقين: النماذج متضاربة (من نحو 1% إلى نحو 10%)، فلا يصلح تنبؤ 2030 وحده أساسًا للقرار.\nالسيناريو الأحق بالاستعداد: «فجوة الأتمتة» (8.7%).\n\nالتوصية: "+g("r_what")+"\nالجهة المسؤولة: "+g("r_who")+"\nالإطار الزمني: "+g("r_when")+"\nمؤشر المتابعة: "+g("r_ind")+"\nعتبة إعادة النظر: "+g("r_thr")+"\nاعتبار أخلاقي / جودة بيانات: "+g("r_eth");}
+$("memoBuild").onclick=function(){
+  var crit=[["r_what","ماذا؟ إجراء محدد (أكثر من 25 حرفًا وليس «الاهتمام بـ…»)",function(v){return v.length>25&&!/^(يجب )?الاهتمام/.test(v);}],["r_who","مَن؟ جهة مسؤولة",function(v){return v.length>3;}],["r_when","متى؟ إطار زمني (يتضمن سنة أو مدة)",function(v){return /\d|شهر|سنة|ربع|عام/.test(v);}],["r_ind","مؤشر قابل للقياس ومن مصدر",function(v){return v.length>8;}],["r_thr","عتبة واضحة لإعادة النظر",function(v){return /\d|ربعين|متتالي|ارتفع|انخفض|تجاوز/.test(v);}],["r_eth","اعتبار أخلاقي أو جودة بيانات",function(v){return v.length>8;}]];
+  var ok=0;$("memoChecks").innerHTML=crit.map(function(c){var p=c[2]($(c[0]).value.trim());if(p)ok++;return '<div class="check'+(p?" ok":"")+'"><i>'+(p?"✓":"!")+'</i><span>'+c[1]+'</span></div>';}).join("")+'<p class="pill" style="margin-top:6px">'+ok+' من 6 معايير</p>';
+  $("memoOut").style.display="block";$("memoOut").textContent=memoText();};
+$("memoCopy").onclick=function(){var t=memoText();try{navigator.clipboard.writeText(t);$("memoCopy").textContent="نُسخت ✓";}catch(e){$("memoOut").style.display="block";$("memoOut").textContent=t;}};
+$("memoModel").onclick=function(){$("memoModelFb").classList.add("show");};
+
+/* ================= الشاشة 16: الاختبار ================= */
+var QZ=[
+  {q:"أدق وصف للتنبؤ:",o:["معرفة يقينية بما سيحدث","تقدير احتمالي يقلّص عدم اليقين","رأي خبير بلا بيانات"],a:1},
+  {q:"«لماذا ارتفع عدد المراجعين في منطقة بعينها؟» سؤال من المستوى:",o:["الوصفي","التشخيصي","التوجيهي"],a:1},
+  {q:"MAE = 0.4 لنموذج يتنبأ بمعدل البطالة يعني:",o:["يخطئ النموذج في المتوسط 0.4 نقطة مئوية","دقة النموذج 40%","يخطئ في 4 من كل 10 أرباع"],a:0},
+  {q:"لماذا يتسع نطاق الثقة كلما ابتعدنا في المستقبل؟",o:["لأن البيانات تقل","لأن عدم اليقين يتراكم","لأن الموسمية تزيد"],a:1},
+  {q:"دراسة حالة: جهة حكومية تتنبأ بعدد المعاملات الشهرية. اختبر فريقها نموذجين على آخر 6 أشهر لم يرها أي منهما، فكان متوسط الخطأ المطلق (MAE) للنموذج الخطي 120 معاملة، وللنموذج الساذج («الشهر القادم = هذا الشهر») 45 معاملة. ما القرار الأنسب؟",o:["اعتماد النموذج الخطي لأنه أكثر علمية وتعقيدًا","اعتماد الساذج مؤقتًا ومراجعة سبب إخفاق الخطي؛ فالنموذج الذي لا يتفوق على الساذج لا يستحق الاعتماد","اعتماد متوسط النموذجين دائمًا لأنه يلغي الأخطاء"],a:1},
+  {q:"مخرج الاستشراف الاستراتيجي عادةً:",o:["رقم واحد ونطاق ثقة","مجموعة سيناريوهات وسرديات","معادلة انحدار"],a:1},
+  {q:"محاور مصفوفة السيناريوهات تُختار من المحركات:",o:["عالية الأثر وقليلة عدم اليقين","عالية الأثر وعالية عدم اليقين","قليلة الأثر"],a:1},
+  {q:"المؤشر الجيد للإنذار المبكر:",o:["تحسّن سوق العمل","قابل للقياس ومتاح من مصدر","أي رقم يتغير"],a:1},
+  {q:"التوصية القوية تتضمن:",o:["إجراءً محددًا وجهة وموعدًا ومؤشرًا وعتبة","رقم التنبؤ لعام 2030","عبارة عامة عن أهمية التدريب"],a:0},
+  {q:"عند التخطيط لسوق العمل، الأنسب أخلاقيًّا:",o:["التنبؤ بسلوك كل فرد","استخدام البيانات المجمّعة متى كفت للغرض","جمع أكبر قدر من البيانات الشخصية"],a:1}
+];
+function drawQuiz(){$("quiz").innerHTML=QZ.map(function(q,i){return '<div style="margin-bottom:12px" data-q="'+i+'"><b>'+(i+1)+') '+q.q+'</b><div class="opts">'+q.o.map(function(o,j){return '<button type="button" class="opt" data-j="'+j+'">'+o+'</button>';}).join("")+'</div></div>';}).join("");
+  [].forEach.call($("quiz").querySelectorAll("[data-q]"),function(d){[].forEach.call(d.querySelectorAll(".opt"),function(b){b.onclick=function(){if(d.getAttribute("data-done"))return;[].forEach.call(d.querySelectorAll(".opt"),function(x){x.classList.remove("sel");});b.classList.add("sel");};});});}
+$("quizSubmit").onclick=function(){var s=0,miss=0;[].forEach.call($("quiz").querySelectorAll("[data-q]"),function(d){var i=+d.getAttribute("data-q"),sel=d.querySelector(".opt.sel");if(!sel)miss++;});
+  if(miss){$("quizResult").style.display="block";$("quizResult").innerHTML='<div class="fb no show">بقي '+miss+' سؤال/أسئلة دون إجابة.</div>';return;}
+  [].forEach.call($("quiz").querySelectorAll("[data-q]"),function(d){var i=+d.getAttribute("data-q"),sel=d.querySelector(".opt.sel"),j=+sel.getAttribute("data-j");d.setAttribute("data-done",1);
+    sel.classList.remove("sel");sel.classList.add(j===QZ[i].a?"right":"wrong");if(j===QZ[i].a)s++;else d.querySelectorAll(".opt")[QZ[i].a].classList.add("right");});
+  var pct=Math.round(s/QZ.length*100);state.quiz={pct:pct};updateStatus();save();
+  $("quizResult").style.display="block";$("quizResult").innerHTML='<div class="score">'+pct+'%</div><div class="fb show '+(pct>=70?"ok":"no")+'">'+s+' من '+QZ.length+'. '+(pct>=70?"أحسنت! اجتزت الاختبار.":"راجع/ي المحاور ثم أعد/أعيدي المحاولة.")+'</div>';
+  $("quizRetry").style.display="inline-block";$("quizSubmit").disabled=true;};
+$("quizRetry").onclick=function(){drawQuiz();$("quizResult").style.display="none";$("quizSubmit").disabled=false;$("quizRetry").style.display="none";};
+
+/* ================= تشغيل ================= */
+SCORM.init();load();buildNav();drawC1();drawModels();drawLab();drawMA();buildScen();drawSteps(false);drawQuiz();
+if(state.ticket)$("entryTicket").value=state.ticket;
+go(Math.min(state.screen||0,screens.length-1));
+window.addEventListener("beforeunload",function(){save();SCORM.finish();});
+</script>
+</body>
+</html>
